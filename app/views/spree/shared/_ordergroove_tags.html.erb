@@ -1,0 +1,56 @@
+<%
+   # order groove tags
+   step=0
+   if !!@product
+     step =1
+     elsif !!@order
+       if @order.state == "address"  ||  @order.state == "cart"
+         step=2
+       elsif @order.state == "payment" || @order.state == "confirm"
+         step=3
+       elsif @order.state == "complete"
+         step=4
+       end
+   end
+
+  logger.info "Step got here: #{step}"
+ if step>0
+   merchant_id= Spree::OrdergrooveConfiguration.account["#{current_store.code}"]["og_merchant_id"]
+   hashkey= Spree::OrdergrooveConfiguration.account["#{current_store.code}"]["og_hashkey"]
+   og_tag_url= Spree::OrdergrooveConfiguration.account["#{current_store.code}"]["og_tag_url_#{ENV["RAILS_ENV"]}"]
+
+   rc4=RC4.new(hashkey)
+   unless hashkey.blank?
+     if !!@order  && step < 4  # cart review or order review page
+       products_json=@order.line_items.map{|item| {:id=> item.variant_id, :quantity=> item.quantity, :unit_price=> item.price, :total_price=> (item.price*item.quantity) }}.to_json
+%>
+        <script type="text/javascript">
+            var og_settings = {
+                "products": <%= raw(products_json) %>,
+                "subtotal": "<%= @order.item_total %>",
+                "tax_total": "<%= (100*@order.line_item_adjustments.tax.eligible.map{|t| t.amount}.sum).to_i/100.00 %>",
+                "shipping_total": "<%= (100*@order.line_item_adjustments.shipping.eligible.map{|t| t.amount}.sum).to_i/100.00 %>",
+                "order_total": "<%= @order.total.to_s %>"
+            };
+        </script>
+
+    <%
+       elsif step==4 %>
+        <div id="og-div"></div>
+        <script type="text/javascript">
+            var og_settings = {}
+        </script>
+    <%
+       elsif step==1 # product page
+    %>
+        <script type="text/javascript">
+            var og_settings = og_settings || {"product": { "id":"<%= @product.id.to_s %>" } };
+        </script>
+
+    <% end %>
+
+    <script type="text/javascript" src="<%= og_tag_url %>/<%= merchant_id%>/core-model.js"></script>
+    <script type="text/javascript" src="<%= og_tag_url %>/<%= merchant_id%>/<%= step%>/controller.js"></script>
+<% end %>
+
+<% end %>
