@@ -1,7 +1,7 @@
 SpreeOrderGroove
 ================
 
-Introduction goes here.
+Order Groove provide the retain engine for ecommerce web sites, all customer sign up for auto delivery. This spree extension integrate it into spree.
 
 Installation
 ------------
