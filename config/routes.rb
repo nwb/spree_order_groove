@@ -5,6 +5,6 @@ Spree::Core::Engine.add_routes do
     #    post 'ogcreateorder'
     #  end
     #end
-    post "/orders/ogcreateorder", to: "orders#ogcreateorder", as: "ogcreateorder"
+    post "/ogcreateorder", to: "orders#ogcreateorder", as: "ogcreateorder"
   end
 end

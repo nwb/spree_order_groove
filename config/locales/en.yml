@@ -8,3 +8,6 @@ en:
          autodelivery:
              name: "Autodelivery Rule"
              description: "Order Groove Auto delivery discount"
+         no_autodelivery:
+             name: "No Autodelivery Rule"
+             description: "No Order Groove Auto delivery discount"
