@@ -15,7 +15,7 @@
 no_tag=false
 if %w{spree/checkout}.include?(params[:controller]) && !!@order && @order.state == "payment"
   no_tag = !@order.user
-  unless %w{214,35,213}.include?(@order.ship_address.country_id).to_s
+  unless Spree::OrdergrooveConfiguration.account[current_store.code]["og_delivery_countries"].include?@order.ship_address.country_id
     no_tag=true
   end
 end

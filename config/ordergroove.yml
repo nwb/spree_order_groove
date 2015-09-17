@@ -3,6 +3,7 @@
 # order Groove for auto delivery
 
 default: &default
+   og_delivery_countries : [214,35,213]
    og_tag_url_development           :   https://staging.static.ordergroove.com
    og_tag_url_production        :   https://static.ordergroove.com
    og_subscription_url_development  :   https://staging.sc.ordergroove.com/subscription/create
