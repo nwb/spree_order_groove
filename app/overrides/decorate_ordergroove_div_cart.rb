@@ -3,4 +3,4 @@ Deface::Override.new(
     :name => "ordergroove_div_cart",
     :replace => "[data-hook='line_item_description']",
     :partial => "spree/shared/ordergroove_line_item_div",
-    :disabled => false)
+    :disabled => true)
