@@ -1,3 +1,3 @@
 <td class="cart-item-delete" data-hook="cart_item_delete">
-  <%= link_to content_tag(:span, '', class: 'glyphicon glyphicon-minus-sign'), '#', :og_id => "remove_#{line_item.variant.product.id.to_s}", class: 'delete', id: "delete_#{dom_id(line_item)}" %>
+  <%= link_to content_tag(:span, '', class: 'glyphicon glyphicon-unchecked'), '#', :og_id => "remove_#{line_item.variant.product.id.to_s}", class: 'delete', id: "delete_#{dom_id(line_item)}" %>
 </td>
