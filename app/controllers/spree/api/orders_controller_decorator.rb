@@ -124,9 +124,11 @@ Spree::Api::OrdersController.class_eval do
         bill_address.save!
         if params['order']['customer']['customerShippingCountry']=="CA"
           shipping_method=Spree::ShippingMethod.find_by_code('USP1')
+        elsif params['order']['customer']['customerShippingCountry']=="GB"
+          Spree::Zone.find(21).shipping_methods.select{|s|s.code=='USP'}
         else
           if ['HI','AK'].include? params['order']['customer']['customerShippingState']   #hi, ak use usps
-            shipping_method=Spree::ShippingMethod.find_by_code('M03')||Spree::ShippingMethod.find_by_zone_id_and_code(2,'U11R')
+            shipping_method=Spree::ShippingMethod.find_by_code('M03')||Spree::Zone.find(2).shipping_methods.select{|s|s.code=='U11R'}
           else
             shipping_method=Spree::ShippingMethod.find_by_code('SUR')||Spree::Zone.find(2).shipping_methods.select{|s|s.code=='FSP'}
           end
