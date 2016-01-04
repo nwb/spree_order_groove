@@ -30,7 +30,7 @@ end
        rc4=RC4.new(hashkey)
        unless hashkey.blank?
          if !!@order  && step < 4  # cart review or order review page
-           products_json=@order.line_items.map{|item| {:id=> item.variant_id.t_s, :quantity=> item.quantity.to_s, :unit_price=> item.price, :total_price=> (item.price*item.quantity) }}.to_json
+           products_json=@order.line_items.map{|item| {:id=> item.variant_id.to_s, :quantity=> item.quantity.to_s, :unit_price=> item.price, :total_price=> (item.price*item.quantity) }}.to_json
     %>
             <script type="text/javascript">
                 var og_settings = {
