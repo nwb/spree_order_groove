@@ -52,7 +52,7 @@ end
            elsif step==1 # product page
         %>
             <script type="text/javascript">
-                var og_settings = og_settings || {"product": { "id":"<%= @product.id.to_s %>" } };
+                var og_settings = og_settings || {"product": { "id":"<%= (@og_target_product||@product).id.to_s %>" } };
             </script>
 
         <% end %>
