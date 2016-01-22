@@ -8,8 +8,8 @@ module Spree
         end
 
         def eligible?(order, options = {})   #line_item is target
-
           return false if order.line_items.any? {|l| l[:auto_delivery]}
+          return true
         end
 
         def actionable?(line_item)
