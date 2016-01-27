@@ -1,5 +1,56 @@
 <tr class="og_info">
 
-  <td colspan="7"><div class="cart_og_main_div" id="og-div_<%= line_item.variant.product.id.to_s %>"></div></td>
+  <td colspan="7"><div class="cart_og_main_div">
+    <% if line_item.auto_delivery%>
+    <div class="og_offer_edit">
+      <div class="og_title">Stay Well Auto Delivery</div>
+      <div class="og_modify_text">
+        <div class="og_modify_every">This item will ship every 4 weeks with 10% savings.</div>
+
+        <div class="og_modify_link_div">
+          <a class="og_modify_autoship_link" onclick="">Modify Auto Delivery</a>
+        </div>
+
+      </div>
+    </div>
+    <% end %>
+    <div class="og_widget_content" style="display:<%= line_item.auto_delivery ? "none" : "" %>">
+    <div class="og_radio_option" >
+    <%= item_form.radio_button(:auto_delivery, "0", :checked => !line_item.auto_delivery) %>
+    <%= item_form.label(:auto_delivery_0, "Deliver 1 time only") %>
+    </div>
+
+    <div class="og_radio_option" >
+      <div class=og_enable_button">
+        <%= item_form.radio_button(:auto_delivery, "1", :checked => line_item.auto_delivery) %>
+        <span>
+        <label class="og_auto_deliver_label">Save 10% <span class="desktop_only">today & off future orders </span>with<span class="desktop_only"> Stay Well</span> Auto Delivery</label>
+        <div class="og_offer_newline">
+            <span><span class="desktop_only">Deliver every </span>
+          <%= item_form.select(:frequency) do %>
+         <%= options_for_select([['2 weeks', '2_2'], ['4 weeks', '4_2'],['6 weeks', '6_2'],['8 weeks', '8_2'],['10 weeks', '10_2'],['12 weeks', '12_2'],], line_item.frequency) %>
+
+         <% end %>
+          </span>
+           <span>
+             <a class="og_about" href="#"><img src="/assets/ui/icon_orange_help.gif"></a>
+           </span>
+          <div id="main_error_message_1539" class="errorMessage" style="display:none;">
+            Please select frequency
+          </div>
+        </div>
+        </span>
+    </div>
+    </div>
+    </div>
+
+
+
+
+      <div style="clear:both"></div>
+
+
+  </div>
+  </td>
 
 </tr>

@@ -1,5 +1,5 @@
 Spree::CheckoutController.class_eval do
-  before_action :apply_autodelivery
+  #before_action :apply_autodelivery
   before_action :set_cc_number
   before_action :create_autodelivery_user
   after_action :create_autodelivery_order
@@ -19,24 +19,34 @@ Spree::CheckoutController.class_eval do
           Rails.logger.error("Order: " + @order.number + " subscribed to auto delivery, post to order groove now")
           Rails.logger.error("*" * 50)
           #encode the subscription
-          subscription={:merchant_id =>merchant_id.to_s, :session_id=>cookies[:og_session_id], :merchant_order_id =>@order.number}
+          subscription={:offer_id =>merchant_id.to_s, :session_id=>cookies[:og_session_id], :order_number =>@order.number}
           billing_address=@order.bill_address
-          subscription[:user]={:user_id=> @order.user_id.to_s, :first_name=>CGI.escape(billing_address.firstname), :last_name=>CGI.escape(billing_address.lastname), :email=>@order.email}
-          subscription[:user][:billing_address]={:first_name=>CGI.escape(billing_address.firstname), :last_name=>CGI.escape(billing_address.lastname),:company_name=>"",:address=>CGI.escape(billing_address.address1),
+          customer={:user_id=> @order.user_id.to_s, :first_name=>CGI.escape(billing_address.firstname), :last_name=>CGI.escape(billing_address.lastname), :email=>@order.email}
+          customer[:billing_address]={:first_name=>CGI.escape(billing_address.firstname), :last_name=>CGI.escape(billing_address.lastname),:company_name=>"",:address=>CGI.escape(billing_address.address1),
                                                  :address2=>CGI.escape(billing_address.address2||''),:city=>CGI.escape(billing_address.city),:state_province_code=>(billing_address.state_id==nil ? billing_address.state_name : Spree::State.find(billing_address.state_id).abbr),:zip_postal_code=>billing_address.zipcode,:phone=>billing_address.phone,
                                                  :fax=>"",:country_code=>Spree::Country.find(billing_address.country_id).iso}
           billing_address=@order.ship_address
-          subscription[:user][:shipping_address]={:first_name=>CGI.escape(billing_address.firstname), :last_name=>CGI.escape(billing_address.lastname),:company_name=>"",:address=>CGI.escape(billing_address.address1),
+          customer[:shipping_address]={:first_name=>CGI.escape(billing_address.firstname), :last_name=>CGI.escape(billing_address.lastname),:company_name=>"",:address=>CGI.escape(billing_address.address1),
                                                   :address2=>CGI.escape(billing_address.address2||''),:city=>CGI.escape(billing_address.city),:state_province_code=>(billing_address.state_id==nil ? billing_address.state_name : Spree::State.find(billing_address.state_id).abbr),:zip_postal_code=>billing_address.zipcode,:phone=>billing_address.phone,
                                                   :fax=>"",:country_code=>Spree::Country.find(billing_address.country_id).iso}
 
           payment={:cc_holder=>CGI.escape(Base64.encode64(rc4.encrypt(billing_address.firstname + ' ' + billing_address.lastname)).chomp), :cc_type=>'1',:cc_number=> CGI.escape(session[:cc].chomp()),:cc_exp_date=>CGI.escape(Base64.encode64(rc4.encrypt(((@order.payments[0].source[:month].to_i<10 ? '0' : '') +@order.payments[0].source[:month] + '/' + @order.payments[0].source[:year]))).chomp) }
-          subscription[:payment] =payment
 
+          customer[:payment] =payment
+          subscription[:customer] =customer
+
+          subscriptions=[]
+          @order.line_items.select{|l| l.auto_delivery}.each do |line_item|
+            subscriptions << {:product_id => line_item.variant_id,
+              :qty =>line_item.quantity,
+               :frequency => line_item.frequency.gsub('_2',''),
+                :period=>"week" }
+          end
+
+          subscription[:subscriptions] =subscriptions
 
           session[:cc] = ''
-          cookies.delete :og_cart_autoship
-          cookies.delete :og_autoship
+
 
           # now post to orderGroove
           require "net/https"
@@ -59,9 +69,10 @@ Spree::CheckoutController.class_eval do
             request.body=body
 
             response = http.request(request)
-            Rails.logger.error("Order: " + @order.number + " auto delivery is created in order groove.")
+            Rails.logger.error("post to orderGroove response:\n #{response.inspect}")
+            Rails.logger.error("Order: " + @order.number + " auto delivery is created in order groove.\nthe post body is: \n" + subscription.to_json)
           rescue
-            Rails.logger.error("Order: " + @order.number + " post to order groove fail")
+            Rails.logger.error("Order: " + @order.number + " post to order groove fail\n the post body is: \n" + subscription.to_json)
           end
         end
       end
@@ -98,7 +109,7 @@ Spree::CheckoutController.class_eval do
     # this is the changes, if you find the spree version is different, copy this change to your version
 
 
-    if params[:state]=="payment" && params[:payment_source] && cookies[:og_autoship]
+    if params[:state]=="payment" && params[:payment_source] && Spree::Promotion::Rules::Autodelivery.new.eligible?(@order)
       hashkey= Spree::OrdergrooveConfiguration.account["#{current_store.code}"]["og_hashkey"]
       rc4=RC4.new(hashkey)
       session[:cc]  = Base64.encode64(rc4.encrypt(params[:payment_source].first.last[:number]))
