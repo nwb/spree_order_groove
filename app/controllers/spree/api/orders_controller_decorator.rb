@@ -95,33 +95,67 @@ Spree::Api::OrdersController.class_eval do
         render :xml =>'<?xml version="1.0" encoding="UTF-8"?><order><code>ERROR</code><errorCode>130</errorCode><errorMsg>User does not exist</errorMsg></order>'
       else
 
-        order=user.orders.create(:store_id=>current_store.id, :item_total=>params['order']['head']['orderSubtotalValue'])
+        order=user.orders.create(:store_id=>current_store.id,:channel => "order_groove", :item_total=>params['order']['head']['orderSubtotalValue'])
 
         #order.update_attribute(:user_id, user)  unless !user
+
+        if Spree::State.find_by_abbr(params['order']['customer']['customerShippingState']).nil?
+          shipstateid = ''
+          shipstatename=params['order']['customer']['customerShippingState']
+        else
+          shipstateid = Spree::State.find_by_abbr(params['order']['customer']['customerShippingState']).id.to_s
+          shipstatename=''
+        end
+
+        if (Spree::State.find_by_abbr(params['order']['customer']['customerBillingState']).nil?)
+          billstateid=''
+          billstatename=params['order']['customer']['customerBillingState']
+        else
+          billstateid = Spree::State.find_by_abbr(params['order']['customer']['customerBillingState']).id.to_s
+          billstatename = ''
+        end
 
         ship_address=Spree::Address.create(:firstname=>params['order']['customer']['customerFirstName'],
                                     :lastname=>params['order']['customer']['customerLastName'],
                                     :address1=>params['order']['customer']['customerShippingAddress1'],
                                     :address2=>params['order']['customer']['customerShippingAddress2'],
                                     :city=>params['order']['customer']['customerShippingCity'],
-                                    :state_id=>Spree::State.find_by_abbr(params['order']['customer']['customerShippingState']).id.to_s|| '',
+                                    :state_id=>shipstateid,
+                                    :state_name=> shipstatename,
                                     :country_id=>Spree::Country.find_by_iso(params['order']['customer']['customerShippingCountry']).id.to_s||'',
                                     :zipcode=>params['order']['customer']['customerShippingZip'],
                                     :phone=>params['order']['customer']['customerShippingPhone']
         )
         ship_address.save!
 
-        bill_address=Spree::Address.create(:firstname=>params['order']['customer']['customerFirstName'],
-                                    :lastname=>params['order']['customer']['customerLastName'],
-                                    :address1=>params['order']['customer']['customerBillingAddress1'],
-                                    :address2=>params['order']['customer']['customerBillingAddress2'],
-                                    :city=>params['order']['customer']['customerBillingCity'],
-                                    :state_id=>Spree::State.find_by_abbr(params['order']['customer']['customerBillingState']).id.to_s|| '',
-                                    :country_id=>Spree::Country.find_by_iso(params['order']['customer']['customerBillingCountry']).id.to_s||'',
-                                    :zipcode=>params['order']['customer']['customerBillingZip'],
-                                    :phone=>params['order']['customer']['customerBillingPhone']
-        )
+        if params['order']['customer']['customerShippingCountry']=="US"
+          bill_address=Spree::Address.create(:firstname=>params['order']['customer']['customerFirstName'],
+                                      :lastname=>params['order']['customer']['customerLastName'],
+                                      :address1=>params['order']['customer']['customerBillingAddress1'],
+                                      :address2=>params['order']['customer']['customerBillingAddress2'],
+                                      :city=>params['order']['customer']['customerBillingCity'],
+                                      :state_id=>billstateid,
+                                      :state_name=>billstatename,
+                                      :country_id=>Spree::Country.find_by_iso(params['order']['customer']['customerBillingCountry']).id.to_s||'',
+                                      :zipcode=>params['order']['customer']['customerBillingZip'],
+                                      :phone=>params['order']['customer']['customerBillingPhone']
+          )
+        else
+          bill_address=Spree::Address.create(:firstname=>params['order']['customer']['customerFirstName'],
+                                      :lastname=>params['order']['customer']['customerLastName'],
+                                      :address1=>params['order']['customer']['customerShippingAddress1'],
+                                      :address2=>params['order']['customer']['customerShippingAddress2'],
+                                      :city=>params['order']['customer']['customerShippingCity'],
+                                      :state_id=>shipstateid,
+                                      :state_name=> shipstatename,
+                                      :country_id=>Spree::Country.find_by_iso(params['order']['customer']['customerShippingCountry']).id.to_s||'',
+                                      :zipcode=>params['order']['customer']['customerShippingZip'],
+                                      :phone=>params['order']['customer']['customerShippingPhone']
+          )
+        end
+
         bill_address.save!
+
         if params['order']['customer']['customerShippingCountry']=="CA"
           shipping_method=Spree::ShippingMethod.find_by_code('USP1')
         elsif params['order']['customer']['customerShippingCountry']=="GB"
@@ -160,7 +194,7 @@ Spree::Api::OrdersController.class_eval do
                 item['qty'].to_i || 1,
                 {auto_delivery: true, price: item['price']}
             )
-            Spree::Adjustment.create(:order_id=>order.id, :amount=>item['discount'].to_f*(-1),:label =>'Auto Delivery Discount', :source_type => "Spree::PromotionAction", :adjustable_id => line_item.id, :adjustable_type => "Spree::LineItem") # discount
+            #Spree::Adjustment.create(:order_id=>order.id, :amount=>item['discount'].to_f*(-1),:label =>'Auto Delivery Discount', :source_type => "Spree::PromotionAction", :adjustable_id => line_item.id, :adjustable_type => "Spree::LineItem") # discount
 
 
           end
@@ -190,8 +224,10 @@ Spree::Api::OrdersController.class_eval do
         order.total = params['order']['head']['orderTotalValue'].to_f
         #order.item_total = params['order']['head']['orderSubtotalValue'].to_f
 
+        seq=0
         order.line_items.each do |l|
-          l.auto_delivery= true
+          #l.adjustments.first.amount=items[seq]['discount'].to_f*(-1)
+          #seq+=1
         end
 
         #order.save!
@@ -213,7 +249,7 @@ Spree::Api::OrdersController.class_eval do
 
         order.save!
         # to overwrite the possilbe tax update to 0, reset the total
-        order.total = params['order']['head']['orderTotalValue'].to_f
+        #order.total = params['order']['head']['orderTotalValue'].to_f
 
         # 4. payment
         if params['order']['head']['orderPaymentMethod']== 'CC'
@@ -237,15 +273,17 @@ Spree::Api::OrdersController.class_eval do
             payment_method.create_profile(payment)
             order.total=order.item_total+ order.adjustments.map(&:amount).inject(:+)
 
-            payment.started_processing!
-            payment.pend!
+            #payment.complete
+            #payment.pend!
+            payment.process!
+            #order.process_payments!
 
             order.update_attributes({:state => "complete", :completed_at => Time.now})
             #order.update_attribute(:automated_approved_at, Time.now)
             until order.state == "complete"
               if order.next!
                 order.update!
-                state_callback(:after)
+                #state_callback(:after)
               end
             end
             order.finalize!
