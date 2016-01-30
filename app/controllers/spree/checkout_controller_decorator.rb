@@ -21,13 +21,13 @@ Spree::CheckoutController.class_eval do
           #encode the subscription
           subscription={:offer_id =>merchant_id.to_s, :session_id=>cookies[:og_session_id], :order_number =>@order.number}
           billing_address=@order.bill_address
-          customer={:user_id=> @order.user_id.to_s, :first_name=>CGI.escape(billing_address.firstname), :last_name=>CGI.escape(billing_address.lastname), :email=>@order.email}
+          customer={:id=> @order.user_id.to_s, :first_name=>CGI.escape(billing_address.firstname), :last_name=>CGI.escape(billing_address.lastname), :email=>@order.email}
           customer[:billing_address]={:first_name=>CGI.escape(billing_address.firstname), :last_name=>CGI.escape(billing_address.lastname),:company_name=>"",:address=>CGI.escape(billing_address.address1),
-                                                 :address2=>CGI.escape(billing_address.address2||''),:city=>CGI.escape(billing_address.city),:state_province_code=>(billing_address.state_id==nil ? billing_address.state_name : Spree::State.find(billing_address.state_id).abbr),:zip_postal_code=>billing_address.zipcode,:phone=>billing_address.phone,
+                                                 :address2=>CGI.escape(billing_address.address2||''),:city=>CGI.escape(billing_address.city),:state=>(billing_address.state_id==nil ? billing_address.state_name : Spree::State.find(billing_address.state_id).abbr),:zip_code=>billing_address.zipcode,:phone=>billing_address.phone,
                                                  :fax=>"",:country_code=>Spree::Country.find(billing_address.country_id).iso}
           billing_address=@order.ship_address
           customer[:shipping_address]={:first_name=>CGI.escape(billing_address.firstname), :last_name=>CGI.escape(billing_address.lastname),:company_name=>"",:address=>CGI.escape(billing_address.address1),
-                                                  :address2=>CGI.escape(billing_address.address2||''),:city=>CGI.escape(billing_address.city),:state_province_code=>(billing_address.state_id==nil ? billing_address.state_name : Spree::State.find(billing_address.state_id).abbr),:zip_postal_code=>billing_address.zipcode,:phone=>billing_address.phone,
+                                                  :address2=>CGI.escape(billing_address.address2||''),:city=>CGI.escape(billing_address.city),:state=>(billing_address.state_id==nil ? billing_address.state_name : Spree::State.find(billing_address.state_id).abbr),:zip_code=>billing_address.zipcode,:phone=>billing_address.phone,
                                                   :fax=>"",:country_code=>Spree::Country.find(billing_address.country_id).iso}
 
           payment={:cc_holder=>CGI.escape(Base64.encode64(rc4.encrypt(billing_address.firstname + ' ' + billing_address.lastname)).chomp), :cc_type=>'1',:cc_number=> CGI.escape(session[:cc].chomp()),:cc_exp_date=>CGI.escape(Base64.encode64(rc4.encrypt(((@order.payments[0].source[:month].to_i<10 ? '0' : '') +@order.payments[0].source[:month] + '/' + @order.payments[0].source[:year]))).chomp) }
@@ -69,7 +69,7 @@ Spree::CheckoutController.class_eval do
             request.body=body
 
             response = http.request(request)
-            Rails.logger.error("post to orderGroove response:\n #{response.inspect}")
+            Rails.logger.error("post to orderGroove response:\n #{response.body.to_yaml}")
             Rails.logger.error("Order: " + @order.number + " auto delivery is created in order groove.\nthe post body is: \n" + subscription.to_json)
           rescue
             Rails.logger.error("Order: " + @order.number + " post to order groove fail\n the post body is: \n" + subscription.to_json)
