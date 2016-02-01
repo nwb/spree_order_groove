@@ -13,24 +13,25 @@ Spree::CheckoutController.class_eval do
           merchant_id= Spree::OrdergrooveConfiguration.account["#{current_store.code}"]["og_merchant_id"]
           hashkey= Spree::OrdergrooveConfiguration.account["#{current_store.code}"]["og_hashkey"]
           og_subscription_url= Spree::OrdergrooveConfiguration.account["#{current_store.code}"]["og_subscription_url_#{ENV["RAILS_ENV"]}"]
+          og_offer_id= Spree::OrdergrooveConfiguration.account["#{current_store.code}"]["og_offer_id"]
 
           rc4=RC4.new(hashkey)
           Rails.logger.error("*" * 50)
           Rails.logger.error("Order: " + @order.number + " subscribed to auto delivery, post to order groove now")
           Rails.logger.error("*" * 50)
           #encode the subscription
-          subscription={:offer_id =>merchant_id.to_s, :session_id=>cookies[:og_session_id], :order_number =>@order.number}
+          subscription={:offer_id =>og_offer_id, :session_id=>cookies[:og_session_id], :order_number =>@order.number}
           billing_address=@order.bill_address
-          customer={:id=> @order.user_id.to_s, :first_name=>CGI.escape(billing_address.firstname), :last_name=>CGI.escape(billing_address.lastname), :email=>@order.email}
-          customer[:billing_address]={:first_name=>CGI.escape(billing_address.firstname), :last_name=>CGI.escape(billing_address.lastname),:company_name=>"",:address=>CGI.escape(billing_address.address1),
-                                                 :address2=>CGI.escape(billing_address.address2||''),:city=>CGI.escape(billing_address.city),:state=>(billing_address.state_id==nil ? billing_address.state_name : Spree::State.find(billing_address.state_id).abbr),:zip_code=>billing_address.zipcode,:phone=>billing_address.phone,
+          customer={:id=> @order.user_id.to_s, :first_name=>(billing_address.firstname), :last_name=>(billing_address.lastname), :email=>@order.email}
+          customer[:billing_address]={:first_name=>(billing_address.firstname), :last_name=>(billing_address.lastname),:company_name=>"",:address=>(billing_address.address1),
+                                                 :address2=>(billing_address.address2||''),:city=>(billing_address.city),:state=>(billing_address.state_id==nil ? billing_address.state_name : Spree::State.find(billing_address.state_id).abbr),:zip_code=>billing_address.zipcode,:phone=>billing_address.phone,
                                                  :fax=>"",:country_code=>Spree::Country.find(billing_address.country_id).iso}
           billing_address=@order.ship_address
-          customer[:shipping_address]={:first_name=>CGI.escape(billing_address.firstname), :last_name=>CGI.escape(billing_address.lastname),:company_name=>"",:address=>CGI.escape(billing_address.address1),
-                                                  :address2=>CGI.escape(billing_address.address2||''),:city=>CGI.escape(billing_address.city),:state=>(billing_address.state_id==nil ? billing_address.state_name : Spree::State.find(billing_address.state_id).abbr),:zip_code=>billing_address.zipcode,:phone=>billing_address.phone,
+          customer[:shipping_address]={:first_name=>(billing_address.firstname), :last_name=>(billing_address.lastname),:company_name=>"",:address=>(billing_address.address1),
+                                                  :address2=>(billing_address.address2||''),:city=>(billing_address.city),:state=>(billing_address.state_id==nil ? billing_address.state_name : Spree::State.find(billing_address.state_id).abbr),:zip_code=>billing_address.zipcode,:phone=>billing_address.phone,
                                                   :fax=>"",:country_code=>Spree::Country.find(billing_address.country_id).iso}
 
-          payment={:cc_holder=>CGI.escape(Base64.encode64(rc4.encrypt(billing_address.firstname + ' ' + billing_address.lastname)).chomp), :cc_type=>'1',:cc_number=> CGI.escape(session[:cc].chomp()),:cc_exp_date=>CGI.escape(Base64.encode64(rc4.encrypt(((@order.payments[0].source[:month].to_i<10 ? '0' : '') +@order.payments[0].source[:month] + '/' + @order.payments[0].source[:year]))).chomp) }
+          payment={:cc_holder=>Base64.encode64(rc4.encrypt(billing_address.firstname + ' ' + billing_address.lastname)).chomp, :cc_type=>'1',:cc_number=> session[:cc].chomp(),:cc_exp_date=>Base64.encode64(rc4.encrypt(((@order.payments[0].source[:month].to_i<10 ? '0' : '') +@order.payments[0].source[:month] + '/' + @order.payments[0].source[:year]))).chomp }
 
           customer[:payment] =payment
           subscription[:customer] =customer
@@ -54,6 +55,7 @@ Spree::CheckoutController.class_eval do
           #CheckoutsHelper.fetch("POST",og_subscription_url,'create_request='+ subscription.to_json )
           url=og_subscription_url
           method="POST"
+          Rails.logger.error("data object to be posed:\n #{subscription.inspect}")
           body= 'create_request='+ subscription.to_json
           headers={}
           headers["Content-Type"] = 'application/json' unless body.nil?
@@ -70,6 +72,9 @@ Spree::CheckoutController.class_eval do
 
             response = http.request(request)
             Rails.logger.error("post to orderGroove response:\n #{response.body.to_yaml}")
+            if response.body.error
+              Rails.logger.error("Order: " + @order.number + " auto delivery failed to be posed:\n  #{response.body.error.message}")
+            end
             Rails.logger.error("Order: " + @order.number + " auto delivery is created in order groove.\nthe post body is: \n" + subscription.to_json)
           rescue
             Rails.logger.error("Order: " + @order.number + " post to order groove fail\n the post body is: \n" + subscription.to_json)
