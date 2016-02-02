@@ -20,7 +20,7 @@ Spree::CheckoutController.class_eval do
           Rails.logger.error("Order: " + @order.number + " subscribed to auto delivery, post to order groove now")
           Rails.logger.error("*" * 50)
           #encode the subscription
-          subscription={:offer_id =>og_offer_id, :session_id=>cookies[:og_session_id], :order_number =>@order.number}
+          subscription={:offer_id =>og_offer_id, :session_id=>cookies[:og_session_id]||"", :order_number =>@order.number}
           billing_address=@order.bill_address
           customer={:id=> @order.user_id.to_s, :first_name=>(billing_address.firstname), :last_name=>(billing_address.lastname), :email=>@order.email}
           customer[:billing_address]={:first_name=>(billing_address.firstname), :last_name=>(billing_address.lastname),:company_name=>"",:address=>(billing_address.address1),
