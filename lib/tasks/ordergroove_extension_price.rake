@@ -35,7 +35,7 @@ namespace :spree do
         config=Spree::Config
         report = ""
         #sftp
-        %w(nwb pwb).each do |site|
+        %w(nwb pwb he).each do |site|
         Net::SFTP.start(config["og_#{site}_ftp_host_#{ENV["RAILS_ENV"]}"], config["og_#{site}_ftp_user"], :password => config["og_#{site}_ftp_pass"]) do |sftp|
            # open and write to a pseudo-IO for a remote file
 
