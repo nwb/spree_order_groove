@@ -56,7 +56,7 @@ Spree::CheckoutController.class_eval do
           url=og_subscription_url
           method="POST"
           Rails.logger.error("data object to be posed:\n #{subscription.inspect}")
-          body= 'create_request='+ subscription.to_json
+          body= subscription.to_json
           headers={}
           headers["Content-Type"] = 'application/json' unless body.nil?
 
@@ -72,9 +72,9 @@ Spree::CheckoutController.class_eval do
 
             response = http.request(request)
             Rails.logger.error("post to orderGroove response:\n #{response.body.to_yaml}")
-            if response.body.error
-              Rails.logger.error("Order: " + @order.number + " auto delivery failed to be posed:\n  #{response.body.error.message}")
-            end
+           # if response.body.error
+           #   Rails.logger.error("Order: " + @order.number + " auto delivery failed to be posed:\n  #{response.body.error.message}")
+           # end
             Rails.logger.error("Order: " + @order.number + " auto delivery is created in order groove.\nthe post body is: \n" + subscription.to_json)
           rescue
             Rails.logger.error("Order: " + @order.number + " post to order groove fail\n the post body is: \n" + subscription.to_json)
