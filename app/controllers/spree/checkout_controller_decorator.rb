@@ -42,48 +42,67 @@ Spree::CheckoutController.class_eval do
               :qty =>line_item.quantity,
                :frequency => line_item.frequency.gsub('_2',''),
                 :period=>"week" }
+
+            # post only one product one time
+            byebug
+            begin
+              subscription[:offer_id] =line_item.adjustments.eligible.select{|a| a.label.include? 'Auto'}.first.source.promotion.description
+              subscription[:subscriptions] =subscriptions
+              post_subscription subscription
+            rescue
+              subscriptions=[]
+            end
+            subscriptions=[]
+
           end
 
-          subscription[:subscriptions] =subscriptions
+          #subscription[:subscriptions] =subscriptions
 
           session[:cc] = ''
 
 
-          # now post to orderGroove
-          require "net/https"
-          require "uri"
-          #CheckoutsHelper.fetch("POST",og_subscription_url,'create_request='+ subscription.to_json )
-          url=og_subscription_url
-          method="POST"
-          Rails.logger.error("data object to be posed:\n #{subscription.inspect}")
-          body= subscription.to_json
-          headers={}
-          headers["Content-Type"] = 'application/json' unless body.nil?
-
-          begin
-            uri = URI.parse(url)
-            http = Net::HTTP.new(uri.host, uri.port)
-            http.read_timeout = 2
-            http.use_ssl = true
-            http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-
-            request = Net::HTTP::Post.new(uri.request_uri)
-            request.body=body
-
-            response = http.request(request)
-            Rails.logger.error("post to orderGroove response:\n #{response.body.to_yaml}")
-           # if response.body.error
-           #   Rails.logger.error("Order: " + @order.number + " auto delivery failed to be posed:\n  #{response.body.error.message}")
-           # end
-            Rails.logger.error("Order: " + @order.number + " auto delivery is created in order groove.\nthe post body is: \n" + subscription.to_json)
-          rescue
-            Rails.logger.error("Order: " + @order.number + " post to order groove fail\n the post body is: \n" + subscription.to_json)
-          end
+          #post_subscription subscription
         end
       end
   end
 
   private
+  # the post creation to orderGroove
+  def post_subscription subscription
+    # now post to orderGroove
+    require "net/https"
+    require "uri"
+    #CheckoutsHelper.fetch("POST",og_subscription_url,'create_request='+ subscription.to_json )
+    url= Spree::OrdergrooveConfiguration.account["#{current_store.code}"]["og_subscription_url_#{ENV["RAILS_ENV"]}"]
+    Rails.logger.error("data object to be posed:\n #{subscription.inspect}")
+    body= subscription.to_json
+    headers={}
+    headers["Content-Type"] = 'application/json' unless body.nil?
+    begin
+      uri = URI.parse(url)
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.read_timeout = 2
+      http.use_ssl = true
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+
+      request = Net::HTTP::Post.new(uri.request_uri)
+      request.body=body
+
+      response = http.request(request)
+      Rails.logger.error("post to orderGroove response:\n #{response.body.to_yaml}")
+
+      result=JSON.parse(response.body)
+       #{"subscriptions"=>{"1805"=>"779cd240cb6c11e599a3bc764e106cf4"}, "error"=>{}, "request_id"=>"56b397bfb3ade34c37783f96"}
+      Rails.logger.error("Subscription is created: #{result["subscriptions"]}")
+      if result["error"].blank?
+        Rails.logger.error("Subscription creation failed with error: #{result["error"]}")
+      end
+
+      Rails.logger.error("Order: " + @order.number + " auto delivery is created in order groove.\nthe post body is: \n" + subscription.to_json)
+    rescue
+      Rails.logger.error("Order: " + @order.number + " post to order groove fail\n the post body is: \n" + subscription.to_json)
+    end
+  end
 
   #if the user password appear in checkout params, create user
   def create_autodelivery_user
