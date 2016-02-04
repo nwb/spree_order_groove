@@ -44,7 +44,7 @@ Spree::CheckoutController.class_eval do
                 :period=>"week" }
 
             # post only one product one time
-            byebug
+            #byebug
             begin
               subscription[:offer_id] =line_item.adjustments.eligible.select{|a| a.label.include? 'Auto'}.first.source.promotion.description
               subscription[:subscriptions] =subscriptions
