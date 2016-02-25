@@ -32,21 +32,21 @@ namespace :spree do
       end
 
       def upload_prices  timestamp
-        config=Spree::Config
         report = ""
         #sftp
-        %w(nwb pwb he).each do |site|
-        Net::SFTP.start(config["og_#{site}_ftp_host_#{ENV["RAILS_ENV"]}"], config["og_#{site}_ftp_user"], :password => config["og_#{site}_ftp_pass"]) do |sftp|
-           # open and write to a pseudo-IO for a remote file
+        Spree::Store.all.each do |store|
+          config=Spree::OrdergrooveConfiguration.account["#{store.code}"]
+          Net::SFTP.start(config["og_ftp_host_#{ENV["RAILS_ENV"]}"], config["og_ftp_user"], :password => config["og_ftp_pass"]) do |sftp|
+             # open and write to a pseudo-IO for a remote file
 
-           report << "get the #{site} prices"
-           file_content=get_html_content("http://#{ ENV["RAILS_ENV"]=='staging' ? 'staging' : 'www' }.#{ 'nwb'==site ? 'natural' : 'pet' }wellbeing.com/feed/ogdiscounts.csv")
-           filename=config["#{site}_og_merchant_id"] + ".BulkDiscount.csv"
-           sftp.file.open(filename, "w") do |f|
-               report << "upload the #{site} prices"
-               f.puts file_content
-           end
-        end
+             report << "get the #{store.code} prices"
+             file_content=get_html_content("http://#{store.url}/feed/ogdiscounts.csv")
+             filename=config["og_merchant_id"] + ".BulkDiscount.csv"
+             sftp.file.open(filename, "w") do |f|
+                 report << "upload the #{store.code} prices"
+                 f.puts file_content
+             end
+          end
         end
 
         result = true
