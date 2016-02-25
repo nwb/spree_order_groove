@@ -156,20 +156,7 @@ Spree::Api::OrdersController.class_eval do
 
         bill_address.save!
 
-        if params['order']['customer']['customerShippingCountry']=="CA"
-          shipping_method=Spree::ShippingMethod.find_by_code('USP1')
-        elsif params['order']['customer']['customerShippingCountry']=="GB"
-          shipping_method=Spree::Zone.find(21).shipping_methods.select{|s|s.code=='USP'}.first
-        else
-          if ['HI','AK'].include? params['order']['customer']['customerShippingState']   #hi, ak use usps
-            shipping_method=Spree::ShippingMethod.find_by_code('M03')||Spree::Zone.find(2).shipping_methods.select{|s|s.code=='U11R'}.first
-          else
-            shipping_method=Spree::ShippingMethod.find_by_code('SUR')||Spree::Zone.find(2).shipping_methods.select{|s|s.code=='FSP'}.first
-          end
-        end
-        order.update_attributes(:email=>params['order']['customer']['customerEmail'], :ship_address_id=>ship_address.id, :bill_address_id=>bill_address.id, :shipping_method_id => shipping_method.id)
-
-
+        order.update_attributes(:email=>params['order']['customer']['customerEmail'], :ship_address_id=>ship_address.id, :bill_address_id=>bill_address.id) #, :shipping_method_id => shipping_method.id)
 
         order.shipments.each do |shipment|
           shipment.update_attributes(:address_id=>ship_address.id,:cost=>params['order']['head']['orderShipping'].to_f)
@@ -224,20 +211,6 @@ Spree::Api::OrdersController.class_eval do
         order.total = params['order']['head']['orderTotalValue'].to_f
         #order.item_total = params['order']['head']['orderSubtotalValue'].to_f
 
-        seq=0
-        order.line_items.each do |l|
-          #l.adjustments.first.amount=items[seq]['discount'].to_f*(-1)
-          #seq+=1
-        end
-
-        #order.save!
-        #order.adjustments.first.destroy
-
-        #order.adjustments.select{|a| a.source_type=="Spree::TaxRate"}.first.amount=params['order']['head']['orderSalesTax'].to_f
-        #order.adjustments.select{|a| a.source_type=="Spree::TaxRate"}.first.save!
-        Spree::Adjustment.create(:order_id=>order.id, :amount=>params['order']['head']['orderSalesTax'].to_f, :label =>'Tax', :source_type => "Spree::TaxRate", :adjustable_id => order.id, :adjustable_type => "Spree::Order")
-
-
         #shippings=order.adjustments.select{|a| a.source_type=="Spree::ShippingCharge"}
 
         if params['order']['head']['orderShipping'].to_f == 0.00
@@ -271,7 +244,7 @@ Spree::Api::OrdersController.class_eval do
           begin
             payment.source.number=rc4.decrypt(Base64.decode64(params['order']['head']['orderCcNumber']))
             payment_method.create_profile(payment)
-            order.total=order.item_total+ order.adjustments.map(&:amount).inject(:+)
+            order.total=order.item_total + (order.adjustments.map(&:amount).inject(:+)||0.00)
 
             #payment.complete
             #payment.pend!
