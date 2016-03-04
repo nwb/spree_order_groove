@@ -13,7 +13,7 @@ module Spree
         end
 
         def actionable?(line_item)
-           false
+           true
         end
 
       end
