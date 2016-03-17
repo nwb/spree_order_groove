@@ -225,6 +225,12 @@ Spree::Api::OrdersController.class_eval do
         #order.total = params['order']['head']['orderTotalValue'].to_f
 
         # 4. payment
+        if order.total > params['order']['head']['orderTotalValue'].to_f
+          Spree::Adjustment.create(:order_id=>order.id, :amount=>(params['order']['head']['orderTotalValue'].to_f-order.total),:label =>'Auto Delivery Discount', :source_type => "Spree::PromotionAction", :adjustable_id => order.id, :adjustable_type => "Spree::Order") # discount
+
+        end
+        order.total=params['order']['head']['orderTotalValue'].to_f
+
         if params['order']['head']['orderPaymentMethod']== 'CC'
           payment_method=Spree::PaymentMethod.where(:name=>'Credit Card').first
 
@@ -244,7 +250,8 @@ Spree::Api::OrdersController.class_eval do
           begin
             payment.source.number=rc4.decrypt(Base64.decode64(params['order']['head']['orderCcNumber']))
             payment_method.create_profile(payment)
-            order.total=order.item_total + (order.adjustments.map(&:amount).inject(:+)||0.00)
+
+
 
             #payment.complete
             #payment.pend!
