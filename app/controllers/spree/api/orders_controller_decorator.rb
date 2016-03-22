@@ -213,9 +213,14 @@ Spree::Api::OrdersController.class_eval do
 
         #shippings=order.adjustments.select{|a| a.source_type=="Spree::ShippingCharge"}
 
-        if params['order']['head']['orderShipping'].to_f == 0.00
+        #if params['order']['head']['orderShipping'].to_f == 0.00
+          shipment=order.shipments.first
+          rate = shipment.shipping_rates.select{|s| s[:selected]}.first || shipment.shipping_rates.first
+          rate[:cost] = params['order']['head']['orderShipping'].to_f
+          rate.save!
+          order.set_shipments_cost
           # order.adjustments.select{|a| a.type=="ShippingCharge"}.first.destroy
-        end
+        #end
         #order.line_items.each do |line_item|
         #Spree::Adjustment.create(:order_id=>order.id, :amount=>4.5*(-1),:label =>'Auto Delivery Discount', :source_type => "Spree::PromotionAction", :adjustable_id => line_item.id, :adjustable_type => "Spree::LineItem") # discount
         #end
