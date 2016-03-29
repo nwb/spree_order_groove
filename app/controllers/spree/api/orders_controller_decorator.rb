@@ -91,6 +91,8 @@ Spree::Api::OrdersController.class_eval do
       else
         user=Spree::User.find(params['order']['customer']['customerPartnerId'])
       end
+
+      email=params['order']['customer']['customerEmail']
       if !user
         render :xml =>'<?xml version="1.0" encoding="UTF-8"?><order><code>ERROR</code><errorCode>130</errorCode><errorMsg>User does not exist</errorMsg></order>'
       else
@@ -272,7 +274,7 @@ Spree::Api::OrdersController.class_eval do
               end
             end
             order.finalize!
-            og_logger.info("og order is successfully created in nwb with number: #{order.number}")
+            og_logger.info("og order is successfully created for #{email} in nwb with number: #{order.number}")
             result_xml='<?xml version="1.0" encoding="UTF-8"?><order><code>SUCCESS</code><orderId>' + order.number + '</orderId><errorMsg /></order>'
           rescue Spree::Core::GatewayError => ge
             # if it fails, destroy the payment and clear the autodelivery discount and flag
@@ -297,12 +299,19 @@ Spree::Api::OrdersController.class_eval do
               error_message=ge #'' #ge.params.messages.message.text
             end
 
-            og_logger.info("error happened in making the payment with creditcard: #{ge}")
+            og_logger.info("error happened in making the payment for #{email} with creditcard: #{ge}")
             result_xml='<?xml version="1.0" encoding="UTF-8"?><order><code>ERROR</code><errorCode>' + error_code + '</errorCode><errorMsg>' + error_message + '</errorMsg></order>'
+          rescue Exception => e
+            error_code='140'
+            og_logger.info("error happened in making the payment with errors for #{email} not from the gateway")
+            result_xml='<?xml version="1.0" encoding="UTF-8"?><order><code>ERROR</code><errorCode>' + error_code + '</errorCode><errorMsg>nwb side error</errorMsg></order>'
+            external_key = Spree::BrontoConfiguration.account["nwb"]["NWB_operation"]
+            Delayed::Job.enqueue( DelayedSimpleSend.new('nwb', "operations@naturalwellbeing.com", external_key, { :SENDTIME__CONTENT1 => "OG Place order Exception", :SENDTIME__CONTENT2 => "OG order placement for #{email} error, please check."},'html'), {priority: -10} )
+
           end
         else
           errstr="The payment method should be CC"
-          og_logger.info("error happened in processing og order: #{errstr}")
+          og_logger.info("error happened in processing #{email} og order: #{errstr}")
           result_xml='<?xml version="1.0" encoding="UTF-8"?><order><code>ERROR</code><errorCode>999</errorCode><errorMsg>' + errstr + '</errorMsg></order>'
 
           #raise(errstr)
