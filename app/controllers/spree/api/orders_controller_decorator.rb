@@ -84,7 +84,7 @@ Spree::Api::OrdersController.class_eval do
     else
 
 
-
+      begin
       # 3. create order
       if params['order']['customer']['customerPartnerId'].blank?
         user=Spree::User.find_by_email(params['order']['customer']['customerEmail'])
@@ -320,6 +320,12 @@ Spree::Api::OrdersController.class_eval do
         # 5. response xml with code and message
         render :xml => result_xml #order.to_xml
       end
+      rescue Exception => e
+      error_code='130'
+      og_logger.info("error happened in making the payment with errors for #{email} not from the gateway")
+      result_xml='<?xml version="1.0" encoding="UTF-8"?><order><code>ERROR</code><errorCode>' + error_code + '</errorCode><errorMsg>' + e.to_s + '</errorMsg></order>'
+      render :xml => result_xml #order.to_xml
+    end
     end
 
   end
