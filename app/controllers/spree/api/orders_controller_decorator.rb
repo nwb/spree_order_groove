@@ -265,8 +265,9 @@ Spree::Api::OrdersController.class_eval do
             payment.process!
             #order.process_payments!
 
-            order.update_attributes({:state => "complete", :completed_at => Time.now})
+            #order.update_attributes({:state => "complete", :completed_at => Time.now})
             #order.update_attribute(:automated_approved_at, Time.now)
+            begin
             until order.state == "complete"
               if order.next!
                 order.update!
@@ -276,7 +277,16 @@ Spree::Api::OrdersController.class_eval do
             order.finalize!
             og_logger.info("og order is successfully created for #{email} in nwb with number: #{order.number}")
             result_xml='<?xml version="1.0" encoding="UTF-8"?><order><code>SUCCESS</code><orderId>' + order.number + '</orderId><errorMsg /></order>'
-          rescue Spree::Core::GatewayError => ge
+
+            rescue Exception => e
+              error_code='140'
+              og_logger.info("error happened after making the payment with errors for #{email} not from the gateway")
+              result_xml='<?xml version="1.0" encoding="UTF-8"?><order><code>ERROR</code><errorCode>' + error_code + '</errorCode><errorMsg>nwb side error after payment</errorMsg></order>'
+              external_key = Spree::BrontoConfiguration.account["nwb"]["NWB_operation"]
+              Delayed::Job.enqueue( DelayedSimpleSend.new('nwb', "operations@naturalwellbeing.com", external_key, { :SENDTIME__CONTENT1 => "OG Place order Exception", :SENDTIME__CONTENT2 => "OG order placement for #{email} error after payment, please check."},'html'), {priority: -10} )
+
+            end
+           rescue Spree::Core::GatewayError => ge
             # if it fails, destroy the payment and clear the autodelivery discount and flag
             payment.destroy
             order.destroy
@@ -305,7 +315,7 @@ Spree::Api::OrdersController.class_eval do
             og_logger.info("error happened in making the payment for #{email} with creditcard: #{ge}")
             result_xml='<?xml version="1.0" encoding="UTF-8"?><order><code>ERROR</code><errorCode>' + error_code + '</errorCode><errorMsg>' + error_message + '</errorMsg></order>'
           rescue Exception => e
-            error_code='999'
+            error_code='140'
             og_logger.info("error happened in making the payment with errors for #{email} not from the gateway")
             result_xml='<?xml version="1.0" encoding="UTF-8"?><order><code>ERROR</code><errorCode>' + error_code + '</errorCode><errorMsg>nwb side error</errorMsg></order>'
             external_key = Spree::BrontoConfiguration.account["nwb"]["NWB_operation"]
