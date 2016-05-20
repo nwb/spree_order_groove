@@ -181,7 +181,7 @@ Spree::Api::OrdersController.class_eval do
             line_item=order.contents.add(
                 variant,
                 item['qty'].to_i || 1,
-                {auto_delivery: true, price: item['price']}
+                {auto_delivery: true, price: item['price'], pre_tax_amount: item['finalPrice']}
             )
             #Spree::Adjustment.create(:order_id=>order.id, :amount=>item['discount'].to_f*(-1),:label =>'Auto Delivery Discount', :source_type => "Spree::PromotionAction", :adjustable_id => line_item.id, :adjustable_type => "Spree::LineItem") # discount
 
@@ -299,10 +299,13 @@ Spree::Api::OrdersController.class_eval do
               error_message=ge #'' #ge.params.messages.message.text
             end
 
+            if(error_code=='140' && error_message.include?('Please try again'))
+              error_code='999'
+            end
             og_logger.info("error happened in making the payment for #{email} with creditcard: #{ge}")
             result_xml='<?xml version="1.0" encoding="UTF-8"?><order><code>ERROR</code><errorCode>' + error_code + '</errorCode><errorMsg>' + error_message + '</errorMsg></order>'
           rescue Exception => e
-            error_code='140'
+            error_code='999'
             og_logger.info("error happened in making the payment with errors for #{email} not from the gateway")
             result_xml='<?xml version="1.0" encoding="UTF-8"?><order><code>ERROR</code><errorCode>' + error_code + '</errorCode><errorMsg>nwb side error</errorMsg></order>'
             external_key = Spree::BrontoConfiguration.account["nwb"]["NWB_operation"]
