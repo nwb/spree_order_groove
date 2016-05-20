@@ -279,11 +279,13 @@ Spree::Api::OrdersController.class_eval do
             result_xml='<?xml version="1.0" encoding="UTF-8"?><order><code>SUCCESS</code><orderId>' + order.number + '</orderId><errorMsg /></order>'
 
             rescue Exception => e
-              error_code='140'
-              og_logger.info("error happened after making the payment with errors for #{email} not from the gateway")
-              result_xml='<?xml version="1.0" encoding="UTF-8"?><order><code>ERROR</code><errorCode>' + error_code + '</errorCode><errorMsg>nwb side error after payment</errorMsg></order>'
+              #error_code='140'
+              #og_logger.info("error happened after making the payment with errors for #{email} not from the gateway")
+              #result_xml='<?xml version="1.0" encoding="UTF-8"?><order><code>ERROR</code><errorCode>' + error_code + '</errorCode><errorMsg>nwb side error after payment</errorMsg></order>'
               external_key = Spree::BrontoConfiguration.account["nwb"]["NWB_operation"]
-              Delayed::Job.enqueue( DelayedSimpleSend.new('nwb', "operations@naturalwellbeing.com", external_key, { :SENDTIME__CONTENT1 => "OG Place order Exception", :SENDTIME__CONTENT2 => "OG order placement for #{email} error after payment, please check."},'html'), {priority: -10} )
+              Delayed::Job.enqueue( DelayedSimpleSend.new('nwb', "operations@naturalwellbeing.com", external_key, { :SENDTIME__CONTENT1 => "OG Place order Exception after PAYMENT", :SENDTIME__CONTENT2 => "OG order placement for #{email} error after payment, please check."},'html'), {priority: -10} )
+              og_logger.info("og order is successfully created for #{email} in nwb with number: #{order.number}")
+              result_xml='<?xml version="1.0" encoding="UTF-8"?><order><code>SUCCESS</code><orderId>' + order.number + '</orderId><errorMsg /></order>'
 
             end
            rescue Spree::Core::GatewayError => ge
