@@ -265,15 +265,15 @@ Spree::Api::OrdersController.class_eval do
             payment.process!
             #order.process_payments!
 
-            #order.update_attributes({:state => "complete", :completed_at => Time.now})
+            order.update_attributes({:state => "complete", :completed_at => Time.now})
             #order.update_attribute(:automated_approved_at, Time.now)
             begin
-            until order.state == "complete"
-              if order.next!
-                order.update!
-                #state_callback(:after)
-              end
-            end
+            #until order.state == "complete"
+            #  if order.next!
+            #    order.update!
+            #    #state_callback(:after)
+            #  end
+            #end
             order.finalize!
             og_logger.info("og order is successfully created for #{email} in nwb with number: #{order.number}")
             result_xml='<?xml version="1.0" encoding="UTF-8"?><order><code>SUCCESS</code><orderId>' + order.number + '</orderId><errorMsg /></order>'
