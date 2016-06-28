@@ -31,7 +31,7 @@ Spree::CheckoutController.class_eval do
                                                   :address2=>(billing_address.address2||''),:city=>(billing_address.city),:state=>(billing_address.state_id==nil ? billing_address.state_name : Spree::State.find(billing_address.state_id).abbr),:zip_code=>billing_address.zipcode,:phone=>billing_address.phone,
                                                   :fax=>"",:country_code=>Spree::Country.find(billing_address.country_id).iso}
 
-          payment={:cc_holder=>Base64.encode64(rc4.encrypt(billing_address.firstname + ' ' + billing_address.lastname)).chomp, :cc_type=>'visa',:cc_number=> session[:cc].chomp(),:cc_exp_date=>Base64.encode64(rc4.encrypt(((@order.payments[0].source[:month].to_i<10 ? '0' : '') +@order.payments[0].source[:month] + '/' + @order.payments[0].source[:year]))).chomp }
+          payment={:cc_holder=>Base64.encode64(rc4.encrypt(billing_address.firstname + ' ' + billing_address.lastname)).chomp, :cc_type=>'visa',:cc_number=> session[:cc].chomp(),:cc_exp_date=>Base64.encode64(rc4.encrypt(((@order.payments.last.source[:month].to_i<10 ? '0' : '') +@order.payments.last.source[:month] + '/' + @order.payments.last.source[:year]))).chomp }
 
           customer[:payment] =payment
           subscription[:customer] =customer
