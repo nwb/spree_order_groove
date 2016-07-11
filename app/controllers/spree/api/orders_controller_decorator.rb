@@ -305,6 +305,8 @@ Spree::Api::OrdersController.class_eval do
                 error_code='120'
               elsif %w(27,127).include? response_error_code
                 error_code='130'
+              elsif %w(901).include? response_error_code
+                error_code='999'
               end
               error_message = ge.params['message'] || ge.params['response_reason_text'] || ge.message
             else
