@@ -24,11 +24,11 @@ Spree::CheckoutController.class_eval do
           billing_address=@order.bill_address
           customer={:id=> @order.user_id.to_s, :first_name=>(billing_address.firstname), :last_name=>(billing_address.lastname), :email=>@order.email}
           customer[:billing_address]={:first_name=>(billing_address.firstname), :last_name=>(billing_address.lastname),:company_name=>"",:address=>(billing_address.address1),
-                                                 :address2=>(billing_address.address2||''),:city=>(billing_address.city),:state=>(billing_address.state_id==nil ? billing_address.state_name : Spree::State.find(billing_address.state_id).abbr),:zip_code=>billing_address.zipcode,:phone=>billing_address.phone,
+                                                 :address2=>(billing_address.address2||''),:city=>(billing_address.city),:state=>(billing_address.state_id==nil ? (!!billing_address.state_name ? billing_address.state_name : '') : Spree::State.find(billing_address.state_id).abbr),:zip_code=>billing_address.zipcode,:phone=>billing_address.phone,
                                                  :fax=>"",:country_code=>Spree::Country.find(billing_address.country_id).iso}
           billing_address=@order.ship_address
           customer[:shipping_address]={:first_name=>(billing_address.firstname), :last_name=>(billing_address.lastname),:company_name=>"",:address=>(billing_address.address1),
-                                                  :address2=>(billing_address.address2||''),:city=>(billing_address.city),:state=>(billing_address.state_id==nil ? billing_address.state_name : Spree::State.find(billing_address.state_id).abbr),:zip_code=>billing_address.zipcode,:phone=>billing_address.phone,
+                                                  :address2=>(billing_address.address2||''),:city=>(billing_address.city),:state=>(billing_address.state_id==nil ? (!!billing_address.state_name ? billing_address.state_name : '') : Spree::State.find(billing_address.state_id).abbr),:zip_code=>billing_address.zipcode,:phone=>billing_address.phone,
                                                   :fax=>"",:country_code=>Spree::Country.find(billing_address.country_id).iso}
 
           payment={:cc_holder=>Base64.encode64(rc4.encrypt(billing_address.firstname + ' ' + billing_address.lastname)).chomp, :cc_type=>'visa',:cc_number=> session[:cc].chomp(),:cc_exp_date=>Base64.encode64(rc4.encrypt(((@order.payments.last.source[:month].to_i<10 ? '0' : '') +@order.payments.last.source[:month] + '/' + @order.payments.last.source[:year]))).chomp }
