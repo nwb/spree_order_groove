@@ -317,7 +317,7 @@ Spree::Api::OrdersController.class_eval do
               error_code='999'
             end
             og_logger.info("error happened in making the payment for #{email} with creditcard: #{ge}")
-            result_xml='<?xml version="1.0" encoding="UTF-8"?><order><code>ERROR</code><errorCode>' + error_code + '</errorCode><errorMsg>' + error_message + '</errorMsg></order>'
+            result_xml='<?xml version="1.0" encoding="UTF-8"?><order><code>ERROR</code><errorCode>' + error_code + '</errorCode><errorMsg><![CDATA[' + error_message + ']]></errorMsg></order>'
           rescue Exception => e
             error_code='140'
             og_logger.info("error happened in making the payment with errors for #{email} not from the gateway")
