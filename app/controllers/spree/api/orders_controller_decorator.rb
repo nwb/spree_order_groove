@@ -250,6 +250,7 @@ Spree::Api::OrdersController.class_eval do
           payment.source = payment_method.payment_source_class.new(:number=>rc4.decrypt(Base64.decode64(params['order']['head']['orderCcNumber'])),
                                                                    :month=>expire_date[0].to_i.to_s,
                                                                    :year=>expire_date[1],
+                                                                   :payment_method_id=>payment_method.id,
                                                                    :verification_value=>213, #params['order']['head']['orderCcNumber'],
                                                                    :name=>params['order']['customer']['customerBillingFirstName'] +' '+params['order']['customer']['customerBillingLastName']
           )
