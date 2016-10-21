@@ -10,10 +10,10 @@ Spree::CheckoutController.class_eval do
 
         #if og_autoship.to_i==1
         if Spree::Promotion::Rules::Autodelivery.new.eligible?(@order) && !!@order.user  # if this order is ready to signup
-          merchant_id= Spree::OrdergrooveConfiguration.account["#{current_store.code}"]["og_merchant_id"]
-          hashkey= Spree::OrdergrooveConfiguration.account["#{current_store.code}"]["og_hashkey"]
-          og_subscription_url= Spree::OrdergrooveConfiguration.account["#{current_store.code}"]["og_subscription_url_#{ENV["RAILS_ENV"]}"]
-          og_offer_id= Spree::OrdergrooveConfiguration.account["#{current_store.code}"]["og_offer_id"]
+          merchant_id= Spree::OrdergrooveConfiguration.account["#{@order.store.code}"]["og_merchant_id"]
+          hashkey= Spree::OrdergrooveConfiguration.account["#{@order.store.code}"]["og_hashkey"]
+          og_subscription_url= Spree::OrdergrooveConfiguration.account["#{@order.store.code}"]["og_subscription_url_#{ENV["RAILS_ENV"]}"]
+          og_offer_id= Spree::OrdergrooveConfiguration.account["#{@order.store.code}"]["og_offer_id"]
 
           rc4=RC4.new(hashkey)
           Rails.logger.error("*" * 50)
@@ -73,7 +73,7 @@ Spree::CheckoutController.class_eval do
     require "net/https"
     require "uri"
     #CheckoutsHelper.fetch("POST",og_subscription_url,'create_request='+ subscription.to_json )
-    url= Spree::OrdergrooveConfiguration.account["#{current_store.code}"]["og_subscription_url_#{ENV["RAILS_ENV"]}"]
+    url= Spree::OrdergrooveConfiguration.account["#{@order.store.code}"]["og_subscription_url_#{ENV["RAILS_ENV"]}"]
     Rails.logger.error("data object to be posed:\n #{subscription.inspect}")
     body= subscription.to_json
     headers={}
@@ -134,7 +134,7 @@ Spree::CheckoutController.class_eval do
 
 
     if params[:state]=="payment" && params[:payment_source] && Spree::Promotion::Rules::Autodelivery.new.eligible?(@order)
-      hashkey= Spree::OrdergrooveConfiguration.account["#{current_store.code}"]["og_hashkey"]
+      hashkey= Spree::OrdergrooveConfiguration.account["#{@order.store.code}"]["og_hashkey"]
       rc4=RC4.new(hashkey)
       session[:cc]  = Base64.encode64(rc4.encrypt(params[:payment_source].first.last[:number]))
     end
