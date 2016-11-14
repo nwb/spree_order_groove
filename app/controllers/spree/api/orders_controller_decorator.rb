@@ -232,8 +232,9 @@ Spree::Api::OrdersController.class_eval do
         #order.total = params['order']['head']['orderTotalValue'].to_f
 
         # 4. payment
+
         if order.total > params['order']['head']['orderTotalValue'].to_f
-          Spree::Adjustment.create(:order_id=>order.id, :amount=>(params['order']['head']['orderTotalValue'].to_f-order.total),:label =>'Auto Delivery Discount', :source_type => "Spree::PromotionAction", :adjustable_id => order.id, :adjustable_type => "Spree::Order") # discount
+          Spree::Adjustment.create(:order_id=>order.id, :amount=>(params['order']['head']['orderTotalValue'].to_f-order.total),:label =>'Autodelivery price adjust', :source_type => "Spree::PromotionAction", :adjustable_id => order.id, :adjustable_type => "Spree::Order") # discount
 
         end
         order.total=params['order']['head']['orderTotalValue'].to_f
@@ -267,6 +268,22 @@ Spree::Api::OrdersController.class_eval do
             #order.process_payments!
 
             order.update_attributes({:state => "complete", :completed_at => Time.now})
+
+            # make the tax and price adjustment clear
+            adjustments=Spree::Adjustment.where(:order_id=>order.id)
+            og_adjust=adjustments.select{|a| a.label == 'Autodelivery price adjust' }
+            if og_adjust.size>0  #total > params['order']['head']['orderTotalValue'].to_f
+              tax=adjustments.select{|a| a.source_type == 'Spree::TaxRate'}
+              if tax.size>0 && params['order']['head']['orderSalesTax'].to_f==0.00
+                 new_adjust= og_adjust.first.amount
+                 tax.each do |t|
+                   new_adjust += t.amount
+                   t.destroy!
+                 end
+                 og_adjust.first.update_attribute(:amount, new_adjust)
+              end
+            end
+
             #order.update_attribute(:automated_approved_at, Time.now)
             begin
             #until order.state == "complete"
