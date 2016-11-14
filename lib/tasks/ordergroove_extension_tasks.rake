@@ -41,7 +41,7 @@ namespace :spree do
             # open and write to a pseudo-IO for a remote file
 
             report << "get the #{store.code} prices"
-            file_content=get_html_content("http://#{store.url}/feed/ogproducts.csv")
+            file_content=get_html_content("https://#{store.url}/feed/ogproducts.csv")
             filename=config["og_merchant_id"] + ".Products.csv"
             sftp.file.open(filename, "w") do |f|
               report << "upload the #{store.code} prices"
@@ -62,7 +62,7 @@ namespace :spree do
         full_path = (url.query.blank?) ? url.path : "#{url.path}?#{url.query}"
         the_request = Net::HTTP::Get.new(full_path)
 
-        the_response = Net::HTTP.start(url.host, url.port) { |http|
+        the_response = Net::HTTP.start(url.host, url.port, :use_ssl => url.scheme == 'https') { |http|
           http.request(the_request)
         }
 
