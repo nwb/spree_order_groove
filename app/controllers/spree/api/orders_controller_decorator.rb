@@ -240,7 +240,7 @@ Spree::Api::OrdersController.class_eval do
         order.total=params['order']['head']['orderTotalValue'].to_f
 
         if params['order']['head']['orderPaymentMethod']== 'CC'
-          payment_method=Spree::PaymentMethod.where(:name=>'Credit Card').first
+          payment_method=Spree::PaymentMethod.where("name like '%Credit Card%'").first
 
           payment=Spree::Payment.create(:order_id=>order.id,
                                  :amount=>order.total,
