@@ -136,7 +136,7 @@ Spree::CheckoutController.class_eval do
     if params[:state]=="payment" && params[:payment_source] && Spree::Promotion::Rules::Autodelivery.new.eligible?(@order)
       hashkey= Spree::OrdergrooveConfiguration.account["#{@order.store.code}"]["og_hashkey"]
       rc4=RC4.new(hashkey)
-      session[:cc]  = Base64.encode64(rc4.encrypt(params[:payment_source].first.last[:number]))
+      session[:cc]  = Base64.encode64(rc4.encrypt(params[:payment_source].first.last[:number].gsub(' ','')))
     end
 
   end
