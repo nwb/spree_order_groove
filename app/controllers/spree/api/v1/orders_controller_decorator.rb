@@ -1,4 +1,4 @@
-Spree::Api::OrdersController.class_eval do
+Spree::Api::V1::OrdersController.class_eval do
 
   skip_before_action :authenticate_user, only: :ogcreateorder
   skip_before_action :find_order, only: :ogcreateorder

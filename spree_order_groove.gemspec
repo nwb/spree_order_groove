@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
 
   version = '~> 3-4-stable'
   #s.add_dependency 'spree_core'
+  s.add_dependency 'zip-zip'
 
 
 end
