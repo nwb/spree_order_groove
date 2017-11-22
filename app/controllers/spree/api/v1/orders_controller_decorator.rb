@@ -45,7 +45,7 @@ Spree::Api::V1::OrdersController.class_eval do
     if params['order']['customer']['customerShippingCity'].blank?
       strxml_error += 'customer shipping city blank,'
     end
-    if params['order']['customer']['customerShippingState'].blank?
+    if params['order']['customer']['customerShippingState'].blank? && (['US', 'CA'].include? params['order']['customer']['customerShippingCountry'])
       strxml_error += 'customer shipping state blank,'
     end
     if params['order']['customer']['customerShippingCountry'].blank?
@@ -64,7 +64,7 @@ Spree::Api::V1::OrdersController.class_eval do
     if params['order']['customer']['customerBillingCity'].blank?
       strxml_error += 'customer Billing city blank,'
     end
-    if params['order']['customer']['customerBillingState'].blank?
+    if params['order']['customer']['customerBillingState'].blank? && (['US', 'CA'].include? params['order']['customer']['customerBillingCountry'])
       strxml_error += 'customer Billing state blank,'
     end
     if params['order']['customer']['customerBillingCountry'].blank?
