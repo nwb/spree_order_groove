@@ -292,6 +292,7 @@ Spree::Api::V1::OrdersController.class_eval do
             #    #state_callback(:after)
             #  end
             #end
+            order.updater.update
             order.finalize!
             og_logger.info("og order is successfully created for #{email} in nwb with number: #{order.number}")
             result_xml='<?xml version="1.0" encoding="UTF-8"?><order><code>SUCCESS</code><orderId>' + order.number + '</orderId><errorMsg /></order>'
