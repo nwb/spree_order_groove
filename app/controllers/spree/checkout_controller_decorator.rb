@@ -137,7 +137,7 @@ Spree::CheckoutController.class_eval do
       hashkey= Spree::OrdergrooveConfiguration.account["#{@order.store.code}"]["og_hashkey"]
       rc4=RC4.new(hashkey)
       payment_method_id=params[:order][:payments_attributes].first[:payment_method_id]
-      cc=params[:payment_source][payment_method_id][:number]
+      cc=params[:payment_source][payment_method_id][:number].gsub(' ','')
       session[:cc]  = Base64.encode64(rc4.encrypt(cc))
     end
 
