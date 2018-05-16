@@ -117,8 +117,8 @@ Spree::Api::V1::OrdersController.class_eval do
           billstatename = ''
         end
 
-        ship_address=Spree::Address.create(:firstname=>params['order']['customer']['customerFirstName'],
-                                    :lastname=>params['order']['customer']['customerLastName'],
+        ship_address=Spree::Address.create(:firstname=>params['order']['customer']['customerShippingFirstName'],
+                                    :lastname=>params['order']['customer']['customerShippingLastName'],
                                     :address1=>params['order']['customer']['customerShippingAddress1'],
                                     :address2=>params['order']['customer']['customerShippingAddress2'],
                                     :city=>params['order']['customer']['customerShippingCity'],
@@ -131,8 +131,8 @@ Spree::Api::V1::OrdersController.class_eval do
         ship_address.save!
 
         if params['order']['customer']['customerShippingCountry']=="US"
-          bill_address=Spree::Address.create(:firstname=>params['order']['customer']['customerFirstName'],
-                                      :lastname=>params['order']['customer']['customerLastName'],
+          bill_address=Spree::Address.create(:firstname=>params['order']['customer']['customerBillingFirstName'],
+                                      :lastname=>params['order']['customer']['customerBillingLastName'],
                                       :address1=>params['order']['customer']['customerBillingAddress1'],
                                       :address2=>params['order']['customer']['customerBillingAddress2'],
                                       :city=>params['order']['customer']['customerBillingCity'],
