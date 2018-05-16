@@ -14,8 +14,8 @@ Spree::Api::V1::OrdersController.class_eval do
 
     og_logger ||= Logger.new("#{Rails.root}/log/og.log")
     # 0. get the RC4 Hash key
-    merchant_id= Spree::OrdergrooveConfiguration.account["#{current_store.code}"]["og_merchant_id"]
-    hashkey= Spree::OrdergrooveConfiguration.account["#{current_store.code}"]["og_hashkey"]
+    merchant_id= Spree::OrdergrooveConfiguration.account["og_merchant_id"]
+    hashkey= Spree::OrdergrooveConfiguration.account["og_hashkey"]
     rc4=RC4.new(hashkey)
     #begin
     # 1. parse xml (rails active support)
@@ -97,7 +97,7 @@ Spree::Api::V1::OrdersController.class_eval do
         render :xml =>'<?xml version="1.0" encoding="UTF-8"?><order><code>ERROR</code><errorCode>130</errorCode><errorMsg>User does not exist</errorMsg></order>'
       else
 
-        order=user.orders.create(:store_id=>current_store.id,:channel => "order_groove", :item_total=>params['order']['head']['orderSubtotalValue'])
+        order=user.orders.create(:channel => "order_groove", :item_total=>params['order']['head']['orderSubtotalValue'])
 
         #order.update_attribute(:user_id, user)  unless !user
 

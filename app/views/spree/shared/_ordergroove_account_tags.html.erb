@@ -1,7 +1,7 @@
 <%
-    merchant_id= Spree::OrdergrooveConfiguration.account[current_store.code]["og_merchant_id"]
-    hashkey= Spree::OrdergrooveConfiguration.account[current_store.code]["og_hashkey"]
-    og_tag_url= Spree::OrdergrooveConfiguration.account[current_store.code]["og_tag_url_#{ENV["RAILS_ENV"]}"]
+    merchant_id= Spree::OrdergrooveConfiguration.account["og_merchant_id"]
+    hashkey= Spree::OrdergrooveConfiguration.account["og_hashkey"]
+    og_tag_url= Spree::OrdergrooveConfiguration.account["og_tag_url_#{ENV["RAILS_ENV"]}"]
     rc4=RC4.new(hashkey)
     unless hashkey.blank?
 %>

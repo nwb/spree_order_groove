@@ -2,7 +2,7 @@
 
 # order Groove for auto delivery
 
-default: &default
+
    og_delivery_countries : [214,35,213]
    og_tag_url_development           :   https://staging.static.ordergroove.com
    og_tag_url_production        :   https://static.ordergroove.com
@@ -14,22 +14,6 @@ default: &default
    og_ftp_host_production   :   feeds.ordergroove.com
    og_ftp_host_development      :   staging.feeds.ordergroove.com
    og_ftp_passive           :   1
-
-store1:
-   <<: *default
-   og_merchant_id           :   your_merchagne_id
-   og_hashkey               :   your_hashkey
-   og_ftp_user              :   your_ftp_user
-   og_ftp_pass              :   your_ftp_passworkd
-
-pwb:
-   <<: *default
-   og_merchant_id           :   your_merchagne_id
-   og_hashkey               :   your_hashkey
-   og_ftp_user              :   your_ftp_user
-   og_ftp_pass              :   your_ftp_passworkd
-he:
-   <<: *default
    og_merchant_id           :   your_merchagne_id
    og_hashkey               :   your_hashkey
    og_ftp_user              :   your_ftp_user
