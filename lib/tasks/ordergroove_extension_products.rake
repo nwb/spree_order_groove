@@ -43,10 +43,13 @@ namespace :spree do
             report << "get the #{store.code} products xml"
             file_content=get_html_content("https://#{store.url}/feed/ogproducts.xml")
             filename=config["og_merchant_id"] + ".Products.xml"
-            sftp.file.open(filename, "w") do |f|
-              report << "upload the #{store.code} products xml"
-              f.puts file_content
-            end
+            tfile=Tempfile.open(filename)
+            tfile.puts file_content
+            tfile.rewind
+            sftp.upload!(tfile, filename)
+
+            report << "uploaded #{store.code} products xml"
+
           end
         end
 
