@@ -210,7 +210,7 @@ Spree::Api::V1::OrdersController.class_eval do
 
         order.reload
         #order.update_totals
-        order.total = params['order']['head']['orderTotalValue'].to_f
+        #order.total = params['order']['head']['orderTotalValue'].to_f
         #order.item_total = params['order']['head']['orderSubtotalValue'].to_f
 
         #shippings=order.adjustments.select{|a| a.source_type=="Spree::ShippingCharge"}
@@ -237,7 +237,8 @@ Spree::Api::V1::OrdersController.class_eval do
           Spree::Adjustment.create(:order_id=>order.id, :amount=>(params['order']['head']['orderTotalValue'].to_f-order.total),:label =>'Autodelivery price adjust', :source_type => "Spree::PromotionAction", :adjustable_id => order.id, :adjustable_type => "Spree::Order") # discount
 
         end
-        order.total=params['order']['head']['orderTotalValue'].to_f
+
+        order.total=params['order']['head']['orderTotalValue'].to_f if order.total > params['order']['head']['orderTotalValue'].to_f
 
         if params['order']['head']['orderPaymentMethod']== 'CC'
           payment_method=Spree::PaymentMethod.where("name like '%Credit Card%'").first
