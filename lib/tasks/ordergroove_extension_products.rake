@@ -44,6 +44,7 @@ namespace :spree do
             file_content=get_html_content("https://#{store.url}/feed/ogproducts.xml")
             filename=config["og_merchant_id"] + ".Products.xml"
             tfile=Tempfile.open(filename)
+            file_content = file_content.encode('utf-8', :invalid => :replace, :undef => :replace, :replace => '_')
             tfile.puts file_content
             tfile.rewind
             sftp.upload!(tfile, filename)
