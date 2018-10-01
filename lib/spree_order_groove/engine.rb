@@ -16,6 +16,7 @@ module SpreeOrderGroove
       Dir.glob(File.join(File.dirname(__FILE__), '../../lib/rc4.rb')) do |c|
         Rails.configuration.cache_classes ? require(c) : load(c)
       end
+      Spree::Api::ApiHelpers::ATTRIBUTES <<:subscription_attributes
     end
 
     config.to_prepare &method(:activate).to_proc

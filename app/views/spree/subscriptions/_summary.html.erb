@@ -1,0 +1,66 @@
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title"><%= Spree.t(:subscription_summary) %></h3>
+  </div>
+
+  <table class="table table-condensed table-bordered" id="subscription_tab_summary" data-hook>
+    <tbody class="additional-info">
+      <tr>
+        <td><strong><%= Spree.t(:customer_email) %></strong></td>
+        <td><span><%= @subscription.parent_order.email %></span></td>
+      </tr>
+      <tr>
+        <td  width="35%" data-hook>
+          <strong><%= Spree.t(:original_order) %>:</strong>
+        </td>
+        <td>
+          <span>
+            <%= link_to @subscription.parent_order.number, order_url(@subscription.parent_order) %>
+          </span>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <strong><%= Spree.t(:next_occurrence_at) %>:</strong>
+        </td>
+        <td id="next_occurrence_at">
+          <%= f.field_container :next_occurrence_at, class: ["form-group"] do %>
+            <%= f.text_field :next_occurrence_at, class: "form-control datepicker subscription_next_occurrence_at", disabled: @subscription.not_changeable? || @subscription.paused?, value: @subscription.next_occurrence_at.to_date %>
+            <%= f.error_message_on :next_occurrence_at %>
+          <% end %>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <strong><%= Spree.t(:prior_notification_days_gap) %></strong>
+        </td>
+        <td>
+          <div data-hook="prior_notification_days_gap">
+            <%= f.field_container :prior_notification_days_gap, class: ["form-group"] do %>
+              <%= number_field :subscription, :prior_notification_days_gap, class: "form-control", disabled: @subscription.not_changeable? %>
+              <%= f.error_message_on :prior_notification_days_gap %>
+            <% end %>
+          </div>
+        </td>
+      </tr>
+      <% if @subscription.cancelled? %>
+        <tr id="cancellation_fields">
+          <td>
+            <strong><%= Spree.t(:cancelled_at) %></strong>
+          </td>
+          <td>
+            <span><%= @subscription.cancelled_at.to_formatted_s(:long) %></span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <strong><%= Spree.t(:cancellation_reasons) %></strong>
+          </td>
+          <td>
+            <span><%= @subscription.cancellation_reasons.html_safe %></span>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

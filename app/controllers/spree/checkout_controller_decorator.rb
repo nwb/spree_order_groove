@@ -8,6 +8,9 @@ Spree::CheckoutController.class_eval do
   def create_autodelivery_order
       if @order.completed?
 
+        #@order.create_subscriptions
+
+
         #if og_autoship.to_i==1
         if Spree::Promotion::Rules::Autodelivery.new.eligible?(@order) && !!@order.user  # if this order is ready to signup
           merchant_id= Spree::OrdergrooveConfiguration.account["#{@order.store.code}"]["og_merchant_id"]

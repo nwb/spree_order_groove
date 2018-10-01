@@ -3,11 +3,68 @@
 
 en:
   spree:
-     signed_up: "Your account is created"
-     promotion_rule_types:
-         autodelivery:
-             name: "Autodelivery Rule"
-             description: "Order Groove Auto delivery discount"
-         no_autodelivery:
-             name: "No Autodelivery Rule"
-             description: "No Order Groove Auto delivery discount"
+    signed_up: "Your account is created"
+    promotion_rule_types:
+      autodelivery:
+        name: "Autodelivery Rule"
+        description: "Order Groove Auto delivery discount"
+      no_autodelivery:
+        name: "No Autodelivery Rule"
+        description: "No Order Groove Auto delivery discount"
+    subscription_notifier:
+      notify_confirmation:
+        subject: "%{frequency} %{number} Subscription Confirmation"
+      notify_cancellation:
+        subject: "%{frequency} %{number} Subscription Cancelled"
+      notify_reoccurrence:
+        subject: "%{frequency} %{number} Subscription Reoccurrence"
+      notify_for_next_delivery:
+        subject: "%{frequency} %{number} Subscription Notice"
+        order_details: 'Order Details'
+    recurring_delivery_interval: "Auto Delivery Interval"
+
+    subscriptions:
+      pause:
+        success: "Subscription is paused"
+        error: "There was some failure in pausing the subscription"
+      unpause:
+        success: "Subscription is active. Your next occurrence will be on %{next_occurrence_at}"
+        error: "There was some faiure in activating the subscription"
+      cancel:
+        success: "Subscription was successfully cancelled"
+        error: "There was some problem in cancelling the subscription"
+      update:
+        success: "Subscription was successfully updated"
+      alert:
+        missing: "Subscription does not exist."
+      error:
+        out_of_range: "Next Occurrence cannot be before today's date"
+        not_changeable: "Subscription is either cancelled or all the deliveries are done."
+      confirm:
+        pause: "Are you sure you want to pause this subscription"
+        activate: "Are you sure you want to activate this subscription"
+        cancel: "Are you sure to cancel this subscription. One cancelled it cannot be started again."
+
+    admin:
+      subscriptions:
+        pause:
+          success: "Subscription is currently paused"
+          error: "There was some failure in pausing subscription"
+        unpause:
+          success: "Subscription is active. Your next occurrence will be on %{next_occurrence_at}"
+          error: "There was some problem in activating subscription"
+        cancel:
+          success: "Subscription is cancelled"
+        cancellation:
+          confirm: "Once cancelled, subscription can not be enabled again"
+        error_on_already_cancelled: "Cancelled Subscription can not be processed."
+
+  activerecord:
+    errors:
+      models:
+        spree/subscription:
+          attributes:
+            variant_id:
+              does_not_belong_to_product: 'does not belong to current product'
+
+    required_authentication: 'Please Login Before Proceeding.'
