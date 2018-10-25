@@ -3,9 +3,83 @@ module Spree
     class SubscriptionsController < Spree::Admin::ResourceController
 
       before_action :ensure_not_cancelled, only: [:update, :cancel, :cancellation, :pause, :unpause]
-      #before_action :update_cc, only: [:update]
+
+      def index_old
+        params[:q] = {} unless params[:q]
+         
+        if params[:q][:completed_at_gt].blank?
+          params[:q][:completed_at_gt] = Time.zone.now.beginning_of_month
+        else
+          params[:q][:completed_at_gt] = Time.zone.parse(params[:q][:completed_at_gt]).beginning_of_day rescue Time.zone.now.beginning_of_month
+        end
+
+        if params[:q] && !params[:q][:completed_at_lt].blank?
+          params[:q][:completed_at_lt] = Time.zone.parse(params[:q][:completed_at_lt]).end_of_day rescue ""
+        end
+
+        @sd = Time.parse(params[:q][:completed_at_gt].to_s).beginning_of_day rescue Time.now.beginning_of_day
+        @ed = Time.parse( params[:q][:completed_at_lt].to_s).end_of_day rescue @sd.end_of_day
+
+        if @sd > @ed
+          @sd, @ed = @ed.beginning_of_day, @sd.end_of_day
+        end
+        
+        @days_in_report = (@ed+1).to_date - @sd.to_date
+
+        time_range = @sd..@ed
+
+        @search=Spree::Subscription.search(params[:q])
+        @subscriptions = @search.result
+
+        #@search=Spree::Order.joins("join spree_orders_subscriptions on spree_orders_subscriptions.order_id = spree_orders.id join spree_subscriptions on spree_subscriptions.id = spree_orders_subscriptions.subscription_id").search(params[:q])
+        #@autodelivery_orders = @search.result
 
 
+      end
+
+      def subscriptionsreport
+        params[:q] = {} unless params[:q]
+        @search=Spree::Subscription.search(params[:q])
+        if params[:q][:completed_at_gt].blank?
+          params[:q][:completed_at_gt] = Time.zone.now - 30.days
+        else
+          params[:q][:completed_at_gt] = Time.zone.parse(params[:q][:completed_at_gt]).beginning_of_day rescue Time.zone.now - 30.days
+        end
+
+        if !params[:q][:completed_at_lt].blank?
+          params[:q][:completed_at_lt] = Time.zone.parse(params[:q][:completed_at_lt]).end_of_day rescue Time.zone.now
+        else
+          params[:q][:completed_at_lt] = Time.zone.now
+        end
+
+        @sd = Time.parse(params[:q][:completed_at_gt].to_s).beginning_of_day rescue Time.now.beginning_of_day
+        @ed = Time.parse( params[:q][:completed_at_lt].to_s).end_of_day rescue @sd.end_of_day
+
+        if @sd > @ed
+          @sd, @ed = @ed.beginning_of_day, @sd.end_of_day
+        end
+
+        @days_in_report = (@ed+1).to_date - @sd.to_date
+
+        time_range = @sd..@ed
+        day_range=@sd.to_date..@ed.to_date
+
+
+        @reports=[['Day', 'New Subscriptions', 'New Orders', 'Auto Delivered Orders']]
+        day_range.each do |date|
+          one_day_range=date.beginning_of_day..date.end_of_day
+          subscriptions=Spree::Subscription.select("date(created_at) as ordered_date, number as new_subscriptions").where('spree_subscriptions.created_at' => one_day_range).length
+          orders=Spree::Order.select("date(completed_at) as ordered_date, number as new_orders").where('spree_orders.completed_at' => one_day_range).length
+
+          auto_delivered_orders=Spree::Order.select("date(completed_at) as ordered_date, number as auto_delivered_orders").where('spree_orders.channel' => 'order_groove', 'spree_orders.completed_at' => one_day_range).length
+
+          @reports << [date.to_s, subscriptions, orders, auto_delivered_orders]
+        end
+        
+
+      end
+
+      
       def new_cc
          @credit_card=Spree::CreditCard.new
          render :credit_card

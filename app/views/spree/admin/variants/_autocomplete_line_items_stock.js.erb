@@ -1,3 +1,6 @@
+<script>
+  var all_frequency=<%= raw(Spree::SubscriptionFrequency.all.to_json)%>;
+ </script>
 <script type='text/template' id='variant_line_items_autocomplete_stock_template'>
   <label><%= Spree.t(:select_stock) %></label>
 
@@ -6,11 +9,10 @@
       <th><%= Spree.t(:name) %></th>
       <th class="text-center"><%= Spree.t(:count_on_hand) %></th>
       <th class="text-center"><%= Spree.t(:quantity) %></th>
-      {{#if variant.subscribable}}
+ 
         <th class="text-center"><%= Spree.t(:subscribe?) %></th>
         <th class="text-center"><%= Spree.t(:frequency) %></th>
-        <th class="text-center"><%= Spree.t(:delivery_number) %></th>
-      {{/if}}
+
       <th></th>
     </thead>
     <tbody>
@@ -22,22 +24,31 @@
             <td class="text-center">
               <input class="quantity form-control" id="variant_quantity" data-variant-id="{{variant.id}}" type="number" min="1" value="1">
             </td>
-            {{#if variant.subscribable}}
+
               <td>
                 <input class="subscribe form-control" name="variant_subscribe" id="variant_subscribe" data-variant-id="{{variant.id}}" type="radio" value="1">Subscribe</input>
-                <input class="subscribe form-control" name="variant_subscribe" id="variant_subscribe" data-variant-id="{{variant.id}}" type="radio" value="0">One Time Order</input>
+                <input class="subscribe form-control" name="variant_subscribe" id="variant_subscribe" data-variant-id="{{variant.id}}" type="radio" checked value="0">One Time Order</input>
               </td>
               <td>
                 <select id="frequency" data-variant-id="{{variant.id}}">
-                  {{#each variant.frequencies}}
-                    <option value="{{this.id}}">{{this.title}}</option>
-                  {{/each}}
+                    <option value="1">1 week</option>
+                    <option value="2">2 weeks</option>
+                    <option value="3">3 weeks</option>
+                    <option value="4">4 weeks</option>
+                    <option value="5">5 weeks</option>
+                    <option value="6">6 weeks</option>
+                    <option value="7">7 weeks</option>
+                    <option value="8">8 weeks</option>
+                    <option value="9">9 weeks</option>
+                    <option value="10">10 weeks</option>
+                    <option value="11">11 weeks</option>
+                    <option value="12">12 weeks</option>
                 </select>
               </td>
               <td>
                 <input class="delivery_number form-control" id="variant_delivery_number" data-variant-id="{{variant.id}}" type="number" min="1" value="1"></input>
               </td>
-            {{/if}}
+
             <td class="actions actions-1 text-center">
               <button class="btn btn-sm btn-success add_variant with-tip" data-variant-id="{{variant.id}}" title="<%= Spree.t(:add) %>" data-action="add">
                 <span class="icon icon-add"></span>
@@ -47,11 +58,10 @@
             <td class="text-center"><%= Spree.t(:out_of_stock) %></td>
             <td class="text-center">0</td>
             <td></td>
-            {{#if variant.subscribable}}
+
               <td></td>
               <td></td>
-              <td></td>
-            {{/if}}
+
             <td></td>
           {{/if}}
         {{else}}
@@ -59,11 +69,28 @@
           <td class="text-center">
             <input class="quantity form-control" id="variant_quantity" data-variant-id="{{variant.id}}" type="number" min="1" value="1">
           </td>
-          {{#if variant.subscribable}}
-            <td></td>
-            <td></td>
-            <td></td>
-          {{/if}}
+
+          <td>
+              <input class="subscribe form-control" name="variant_subscribe" id="variant_subscribe" data-variant-id="{{variant.id}}" type="radio" value="1">Subscribe</input>
+              <input class="subscribe form-control" name="variant_subscribe" id="variant_subscribe" data-variant-id="{{variant.id}}" type="radio" value="0">One Time Order</input>
+          </td>
+          <td>
+              <select id="frequency" data-variant-id="{{variant.id}}">
+                  <option value="1">1 week</option>
+                  <option value="2">2 weeks</option>
+                  <option value="3">3 weeks</option>
+                  <option value="4">4 weeks</option>
+                  <option value="5">5 weeks</option>
+                  <option value="6">6 weeks</option>
+                  <option value="7">7 weeks</option>
+                  <option value="8">8 weeks</option>
+                  <option value="9">9 weeks</option>
+                  <option value="10">10 weeks</option>
+                  <option value="11">11 weeks</option>
+                  <option value="12">12 weeks</option>
+              </select>
+          </td>
+
           <td class="actions actions-1 text-center">
             <button class="btn btn-sm btn-success add_variant with-tip" data-variant-id="{{variant.id}}" title="<%= Spree.t(:add) %>" data-action="add">
               <span class="icon icon-add"></span>

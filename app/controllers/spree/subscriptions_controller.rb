@@ -9,7 +9,7 @@ module Spree
 
     def new_cc
       @credit_card=Spree::CreditCard.new
-      render :credit_card
+      render :credit_card, :layout => false
     end
 
     def new_cc_update
@@ -26,8 +26,10 @@ module Spree
       begin
         res=payment_method.authorize(1, source, {})
       rescue e
-        flash[:error] = e.to_s
-        redirect_to(new_cc_admin_subscription_path(@subscription)) && return
+        #flash[:error] = e.to_s
+        render :json => {"error" => e.to_s}.to_json
+        #redirect_to(new_cc_admin_subscription_path(@subscription)) && return
+        return
       end
       if res.success?
         #byebug
@@ -35,12 +37,20 @@ module Spree
         #@subscription.source.gateway_customer_profile_id= nil
         payment_method.create_profile(@subscription)
         @subscription.source.save!
-        @subscription.save!
-        flash[:success] = t('.success')
-        redirect_to(edit_admin_subscription_path(@subscription)) && return
+        @subscription.update_attributes(source: source, attempts:0)
+        #flash[:success] = t('.success')
+        @credit_card = source
+        render json: @credit_card.to_json
+        #render '_payment_info', :layout => false
+        return
+        #redirect_to(edit_subscription_path(@subscription)) && return
       else
-        flash[:error] = t('.error')
-        redirect_to(new_cc_admin_subscription_path(@subscription)) && return
+        #flash[:error] = t('.error')
+        #render :text => "Error: Credit card information wrong, or rejected #{res.inspect}"
+        render :json => {"error" => res.message}.to_json
+        #render :text => "Error: Credit card information wrong, or rejected #{res.inspect}"
+        return
+        #redirect_to(new_cc_subscription_path(@subscription)) && return
       end
       #Rails.logger.info(params.inspect);
     end
@@ -116,6 +126,22 @@ module Spree
       end
     end
 
+    def uncancel
+      if @subscription.uncancel
+        render json: {
+            flash: t('.success', next_occurrence_at: @subscription.next_occurrence_at.to_date.to_formatted_s(:rfc822)),
+            url: cancel_subscription_path(@subscription),
+            button_text: Spree::Subscription::ACTION_REPRESENTATIONS[:cancel],
+            next_occurrence_at: @subscription.next_occurrence_at.to_date,
+            confirmation: Spree.t("subscriptions.confirm.cancel")
+        }, status: 200
+      else
+        render json: {
+            flash: t('.error')
+        }, status: 422
+      end
+    end
+
     private
 
 
@@ -129,7 +155,12 @@ module Spree
       end
 
       def ensure_subscription
-        @subscription = Spree::Subscription.active.find_by(id: params[:id])
+        if params[:id].include? "S"
+        @subscription = Spree::Subscription.find_by_number(params[:id])
+        else
+          @subscription = Spree::Subscription.find(params[:id])
+        end
+
         unless @subscription
           respond_to do |format|
             format.html { redirect_to account_path, error: Spree.t('subscriptions.alert.missing') }

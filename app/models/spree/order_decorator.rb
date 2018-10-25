@@ -19,7 +19,7 @@ Spree::Order.class_eval do
   end
 
   def create_subscriptions
-    if state=="complete"
+    if state=="complete" && !!user_id
     line_items.each do |line_item|
       line_item.create_subscription! if line_item.subscribable? && !line_item.subscription
     end

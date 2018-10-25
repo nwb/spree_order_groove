@@ -2,7 +2,7 @@ Spree::LineItem.class_eval do
 
   attr_accessor :subscription_frequency_id
 
-  after_create :create_subscription!, if: :subscribable?
+  #after_create :create_subscription!, if: :subscribable?
   #after_update :update_subscription_quantity, if: :can_update_subscription_quantity?
   #after_update :update_subscription_attributes, if: :can_update_subscription_attributes?
   after_destroy :destroy_associated_subscription!, if: :subscription?
@@ -46,9 +46,10 @@ Spree::LineItem.class_eval do
     def subscription_attributes
       {
         subscription_frequency_id: frequency,
-        price: variant.price,
+        price: price+adjustments.where(source_type: "Spree::PromotionAction").sum(&:amount),
         variant: variant,
-        quantity: quantity
+        quantity: quantity,
+        user_id: order.user_id
       }
     end
 

@@ -2,7 +2,7 @@ Spree::Api::ApiHelpers.module_eval do
      # ATTRIBUTES <<:subscription_attributes
 
       @@subscription_attributes = [
-          :id, :number,:subscription_frequency_id,:price, :variant,
+          :id, :number,:subscription_frequency_id,:price, :variant,:user_id,
           :quantity, :enabled, :next_occurrence_at, :prior_notification_days_gap
       ]
 

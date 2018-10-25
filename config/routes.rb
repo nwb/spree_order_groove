@@ -23,10 +23,14 @@ Spree::Core::Engine.routes.draw do
         patch :unpause
         get :cancellation
         patch :cancel
+        patch :uncancel
         get "new_cc", to: "subscriptions#new_cc"
         post "new_cc_update", to: "subscriptions#new_cc_update"
       end
+
     end
+    get "subscriptionsreport", to: "subscriptions#subscriptionsreport"
+
   end
 
   resources :subscriptions, except: [:new, :destroy, :show] do
@@ -34,6 +38,7 @@ Spree::Core::Engine.routes.draw do
       patch :pause
       patch :unpause
       patch :cancel
+      patch :uncancel
       get "new_cc", to: "subscriptions#new_cc"
       post "new_cc_update", to: "subscriptions#new_cc_update"
     end

@@ -1,18 +1,105 @@
-<tr data-id=<%= subscription.id %>>
-  <td class="subscription-number"><%= link_to subscription.number, edit_subscription_path(subscription) %></td>
-  <td class="subscription-product-name"><%= subscription.variant.product.name %></td>
-  <td class="text-center subscription-price"><%= subscription.price %></td>
-  <td class="text-center subscription-started"><%= subscription.parent_order.completed_at.to_date.to_formatted_s(:rfc822) %></td>
-  <td class="text-center subscription-frequency"><%= subscription.frequency.title.titleize %></td>
-  <td class="text-center subscription-deliveries-left"><%= subscription.number_of_deliveries_left %></td>
-  <td class="subscription-action-links">
-    <% @subscription = subscription %>
-    <% if subscription.cancelled? %>
+<% @subscription = subscription %>
+<% currency = Money.new(1000, @subscription.parent_order.currency).currency %>
+
+<%
+  d='10'
+  product= @subscription.variant.product
+  pc=Spree::PromotionCategory.find_by_name("auto delivery")
+  pc.promotions.where(promotion_rules: product.promotion_rules)
+
+  prs=product.promotion_rules.where(promotion_id:pc.promotions)
+
+  if prs.length>0
+    promotion = prs.first.promotion
+    d= promotion.name.gsub(/[^[\d|\.]]/, '')
+  end
+%>
+<div class="subscription_head">
+  <div class="col-md-3 col-xs-6">
+    <h2 class="title"><%= @subscription.number %></h2>
+    <div class="sub_content">
+
+      <label>Delivery <%= @subscription.quantity%> <%= @subscription.variant.product.package_unit || "bottles"%> every <%= @subscription.frequency.title%></label>
+
+      Next Order Date: <strong><%= @subscription.next_occurrence_at.to_date %></strong>
+      
+      <br>
+      <% if subscription.cancelled? %>
         Subscription Cancelled
-    <% else %>
-      <span id="pause_links"><%= render partial: 'spree/subscriptions/pause_links', locals: { btn_class: "btn-xs" } %></span>
-      <%= link_to Spree.t(:edit), edit_subscription_path(subscription), class: "btn btn-xs btn-default" %>
-      <%= link_to Spree.t("subsriptions.admin.cancel"), "javascript:void(0)", class: "btn ajax_handler btn-xs btn-danger", data: { method: "PATCH", confirmation: Spree.t("subscriptions.confirm.cancel"), url: cancel_subscription_path(subscription) } %>
-    <% end %>
-  </td>
-</tr>
+      <% else %>
+        <span id="pause_links"><%= render partial: 'spree/subscriptions/pause_links', locals: { btn_class: "btn-xs" } %></span>
+        <%= link_to Spree.t(:edit), edit_subscription_path(subscription), class: "btn ajax_handler btn-xs btn-success" %>
+        <%= link_to Spree.t("subsriptions.admin.cancel"), "javascript:void(0)", class: "btn ajax_handler btn-xs btn-danger", data: { method: "PATCH", confirmation: Spree.t("subscriptions.confirm.cancel"), url: cancel_subscription_path(subscription) } %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="col-md-5 col-xs-6">
+    <h2 class="title">Subscription Item</h2>
+    <div class="sub_content">
+
+      <div class="left"><%= product_image(@subscription.variant) %></div>
+      <div>
+        <div class="item_title"><%= @subscription.variant.product.name %> </div>
+        <p class="item_option">
+          <%= @subscription.variant.options_text %>
+        </p>
+        <% @product= @subscription.variant.product%>
+
+        <div class="left">
+          <%= render :partial => 'spree/shared/powerreviews_product_snippet', :locals => { :product => @subscription.variant.product, :showwrite => false }%>
+        </div>
+        <br>
+        <% if @subscription.variant.in_stock? %>
+          <div class="in-stock">
+            <%= Spree.t(:in_stock) %>
+          </div>
+        <% else %>
+          <div class="out-of-stock">
+            <%= Spree.t(:out_of_stock) %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="col-md-4 col-xs-6">
+    <h2 class="title">Price</h2>
+    <div class="sub_content">
+
+      <%
+        if volume_array(@subscription.variant)[0] < @subscription.variant.price_in(@subscription.parent_order.currency).price
+          saving=true
+        else
+          saving=false
+        end
+      %>
+      <div class="left">Original Price:</div>
+      <div class="right"><span id="single_bottle_original_<%= @subscription.variant_id %>" class="original_price <%= saving ? "discounted" : ""%>"><%= currency.symbol %><%= '%.2f' % (@subscription.variant.price_in(@subscription.parent_order.currency).price *  @subscription.quantity) %></span>
+      </div>
+      <div class="clear"></div>
+      <div class="volume_price" style="display:<%=saving ? "block" : "none" %>;">
+        <div class="left">Volume Discount:</div>
+        <div class="right original_price" id="single_bottle_save_<%= @subscription.variant_id %>">-<%= currency.symbol %><%= '%.2f' %  ((@subscription.variant.price_in(@subscription.parent_order.currency).price - volume_array(@subscription.variant)[@subscription.quantity-1]) * @subscription.quantity) %></div>
+        <div class="clear"></div>
+      </div>
+
+
+      <div class="left">Auto Delivery:</div>
+      <div class="right"><span class="delivery_price">-<%= Spree::Money.new(@subscription.price*d.to_i/100, :currency => currency) %></span></div>
+
+      <div class="clear"></div>
+
+
+      <div class="left summary_label">You Pay:</div>
+      <div class="right original_price price_summary">
+        <label><%= @subscription.price%></label>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="clear"></div>
+<hr class="divider"/>
+
+

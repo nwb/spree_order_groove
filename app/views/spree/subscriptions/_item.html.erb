@@ -1,54 +1,139 @@
-<div>
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <h1 class="panel-title">
-        <%= Spree.t(:subscription_item) %>
-      </h1>
-    </div>
-    <table class="table table-bordered line-items" data-hook="line-items">
-      <thead>
-        <th colspan="2"><%= Spree.t(:name) %></th>
-        <th class="text-center">
-          <%= f.label :price, Spree.t(:price) %><span class="required">*</span>
-        </th>
-        <th class="text-center">
-          <%= f.label :quantity, Spree.t(:quantity) %><span class="required">*</span>
-        </th>
-        <th class="text-center">
-          <%= f.label :frequency, Spree.t(:recurring_delivery_interval) %><span class="required">*</span>
-        </th>
-      </thead>
-      <tbody>
-        <tr class="line-item" id="line-item-<%= @subscription.id %>">
-          <td class="line-item-image image text-center">
-            <%= mini_image(@subscription.variant) %>
-          </td>
-          <td class="line-item-name text-center">
-            <%= collection_select(:subscription, :variant_id, @subscription.variant.product_variants, :id, :name, {}, data: { subscription_id: @subscription.id }) %>
-          </td>
-          <td class="line-item-price text-center">
-            <div data-hook="admin_subscription_price_form" data-subscription-id="<%= @subscription.id %>">
-              <%= @subscription.price %>
-            </div>
-          </td>
-          <td class="line-item-qty-show text-center">
-            <div data-hook="admin_subscription_quantity_form">
-              <%= f.field_container :quantity, class: ["form-group"] do %>
-                <%= number_field :subscription, :quantity, { min: 1, disabled: @subscription.not_changeable? } %>
-                <%= f.error_message_on :quantity %>
-              <% end %>
-            </div>
-          </td>
-          <td class="line-item-qty-edit">
-            <div data-hook="admin_subscription_frequency_form">
-              <%= f.field_container :frequency, class: ["form-group"] do %>
-                <%= f.collection_select :subscription_frequency_id, @subscription.variant.product.subscription_frequencies, :id, :title, {}, { class: "form-control", disabled: @subscription.not_changeable? } %>
-                <%= f.error_message_on :frequency %>
-              <% end %>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+<% currency = Money.new(1000, @subscription.parent_order.currency).currency %>
+
+<%
+  d='10'
+  product= @subscription.variant.product
+  pc=Spree::PromotionCategory.find_by_name("auto delivery")
+  pc.promotions.where(promotion_rules: product.promotion_rules)
+
+  prs=product.promotion_rules.where(promotion_id:pc.promotions)
+
+  if prs.length>0
+    promotion = prs.first.promotion
+    d= promotion.name.gsub(/[^[\d|\.]]/, '')
+  end
+%>
+<div class="subscription_head">
+<div class="col-md-2 col-xs-6">
+  <h2 class="title"> <%= Spree.t(:quantity) %></h2>
+  <div class="sub_content">
+    <% if !@subscription.not_changeable?%>
+  <button class="_qty_helper _qty-spin-minus" type="button"></button>
+    <% end %>
+          <%= number_field :subscription, :quantity, { min: 1,max:999, disabled: @subscription.not_changeable? , class: "form-control", onChange: "update_product_info(this,#{@subscription.variant_id},#{d})"} %>
+    <% if !@subscription.not_changeable? %>
+    <button class="_qty_helper  _qty-spin-plus" type="button"></button>
+     <% end %>
+          <%= f.error_message_on :quantity %>
+          <br>
+          <% if !@subscription.not_changeable? %>
+      <span>
+        <%= link_to 'Cancel', cancel_subscription_path(@subscription), method: :patch, class: 'cancel btn-danger btn', data: { confirm: Spree.t("subscriptions.confirm.cancel") } %>
+      </span>
+    <!--span id="pause_links">
+              <%= link_to 'Pause', pause_subscription_path(@subscription), method: :patch, class: 'btn ajax_handler btn-warning', data: { confirm: Spree.t("subscriptions.confirm.pause") } %>
+    </span-->
+
+          <% end %>
 </div>
+</div>
+
+      <div class="col-md-6 col-xs-6">
+        <h2 class="title">Subscription Item</h2>
+        <div class="sub_content">
+
+        <div class="left"><%= product_image(@subscription.variant) %></div>
+         <div>
+          <div class="item_title"><%= @subscription.variant.product.name %> </div>
+           <p class="item_option">
+          <%= @subscription.variant.options_text %>
+           </p>
+          <% @product= @subscription.variant.product%>
+          
+          <div class="left">
+          <%= render :partial => 'spree/shared/powerreviews_product_snippet', :locals => { :product => @subscription.variant.product, :showwrite => false }%>
+          </div>
+          <br>
+          <% if @subscription.variant.in_stock? %>
+            <div class="in-stock">
+              <%= Spree.t(:in_stock) %>
+            </div>
+          <% else %>
+            <div class="out-of-stock">
+              <%= Spree.t(:out_of_stock) %>
+            </div>
+          <% end %>
+         </div>
+        </div>
+      </div>
+
+
+ <div class="col-md-4 col-xs-6">
+   <h2 class="title">Price</h2>
+        <div class="sub_content">
+
+        <%
+          if volume_array(@subscription.variant)[0] < @subscription.variant.price_in(@subscription.parent_order.currency).price
+            saving=true
+          else
+            saving=false
+          end
+        %>
+        <div class="left">Original Price:</div>
+        <div class="right"><span id="single_bottle_original_<%= @subscription.variant_id %>" class="original_price <%= saving ? "discounted" : ""%>"><%= currency.symbol %><%= '%.2f' % (@subscription.variant.price_in(@subscription.parent_order.currency).price *  @subscription.quantity) %></span>
+        </div>
+        <div class="clear"></div>
+        <div class="volume_price" style="display:<%=saving ? "block" : "none" %>;">
+          <div class="left">Volume Discount:</div>
+          <div class="right original_price" id="single_bottle_save_<%= @subscription.variant_id %>">-<%= currency.symbol %><%= '%.2f' %  ((@subscription.variant.price_in(@subscription.parent_order.currency).price - volume_array(@subscription.variant)[@subscription.quantity-1]) * @subscription.quantity) %></div>
+          <div class="clear"></div>
+        </div>
+
+
+              <div class="left">Auto Delivery:</div>
+              <div class="right"><span class="delivery_price">-<%= Spree::Money.new(@subscription.price*d.to_i/100, :currency => currency) %></span></div>
+
+          <div class="clear"></div>
+
+
+        <div class="left summary_label">You Pay:</div>
+        <div class="right original_price price_summary">
+        <label><%= @subscription.price%></label>
+        </div>
+   </div>
+      </div>
+</div>
+<div class="clear"></div>
+<hr class="divider"/>
+      <div class="col-md-4 col-xs-6">
+        <strong>Next Order Date</strong>
+        <%= f.field_container :next_occurrence_at, class: ["form-group"] do %>
+          <%= f.text_field :next_occurrence_at, class: "form-control datepicker subscription_next_occurrence_at", disabled: @subscription.not_changeable? || @subscription.paused?, value: @subscription.next_occurrence_at.to_date %>
+          <%= f.error_message_on :next_occurrence_at %>
+        <% end %>
+      </div>
+
+      <div class="col-md-4 col-xs-6">
+        <strong>Delivery every</strong>
+        <%= f.field_container :frequency, class: ["form-group"] do %>
+          <%= f.collection_select :subscription_frequency_id, Spree::SubscriptionFrequency.all, :id, :title, {}, { class: "form-control", disabled: @subscription.not_changeable? } %>
+          <%= f.error_message_on :frequency %>
+        <% end %>
+
+      </div>
+        <div class="col-md-4 col-xs-6">
+        <strong>Email Reminder</strong>
+
+        <div data-hook="prior_notification_days_gap">
+          <%= f.field_container :prior_notification_days_gap, class: ["form-group"] do %>
+            <%= number_field :subscription, :prior_notification_days_gap, class: "form-control", disabled: @subscription.not_changeable? %>
+            days in advance
+            <%= f.error_message_on :prior_notification_days_gap %>
+          <% end %>
+        </div>
+        </div>   
+
+<div class="clear"></div>
+<hr class="divider"/>
+
+

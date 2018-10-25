@@ -1,24 +1,15 @@
-<%
-    merchant_id= Spree::OrdergrooveConfiguration.account[current_store.code]["og_merchant_id"]
-    hashkey= Spree::OrdergrooveConfiguration.account[current_store.code]["og_hashkey"]
-    og_tag_url= Spree::OrdergrooveConfiguration.account[current_store.code]["og_tag_url_#{ENV["RAILS_ENV"]}"]
-    rc4=RC4.new(hashkey)
-    unless hashkey.blank?
-%>
-    <div id='og-msi-container'></div>
+<% content_for :page_title do %>
+  Subscriptions
+<% end %>
 
-    <script type='text/javascript'>
-    var og_settings = {
-    'merchant_id': '<%= merchant_id %>',
-    'merchant_user_id': '<%= @user.id %>',
-    'merchant_user_hash': '<%= Base64.encode64(rc4.encrypt(@user.id.to_s)).chomp %>',
-    'merchant_user_email': '<%= @user.email %>',
-    'msi_container': 'og-msi-container',
-    'msi_width': '582px'
-    };
-    </script>
+<% if @subscriptions.present? %>
+  <div id="cart-detail" class="subscription">
+    <%= render partial: 'spree/subscriptions/subscription', collection: @subscriptions %>
 
-    <script type="text/javascript" src="<%= og_tag_url %>/<%= merchant_id%>/core-model.js"></script>
-    <script type="text/javascript" src="<%= og_tag_url %>/widget_core/msi_driver.js"></script>
+  </div>
 
+<% else %>
+  <div class="alert alert-info no-objects-found">
+    <%= Spree.t(:no_resource_found, resource: plural_resource_name(Spree::Subscription)) %>
+  </div>
 <% end %>

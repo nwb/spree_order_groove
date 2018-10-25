@@ -1,5 +1,7 @@
 module Spree
   class Subscription < Spree::Base
+    #extend FriendlyId
+    #friendly_id :number, slug_column: :number, use: :history
 
     attr_accessor :cancelled
 
@@ -12,10 +14,12 @@ module Spree
                              }
 
     USER_DEFAULT_CANCELLATION_REASON = "Cancelled By User"
+    TRY_LIMIT = 3
 
     belongs_to :ship_address, class_name: "Spree::Address"
     belongs_to :bill_address, class_name: "Spree::Address"
     belongs_to :parent_order, class_name: "Spree::Order"
+    belongs_to :user, class_name: "Spree::User"
     belongs_to :variant, inverse_of: :subscriptions
     belongs_to :frequency, foreign_key: :subscription_frequency_id, class_name: "Spree::SubscriptionFrequency"
     belongs_to :source, polymorphic: true
@@ -26,17 +30,20 @@ module Spree
     has_many :orders, through: :orders_subscriptions
     has_many :complete_orders, -> { complete }, through: :orders_subscriptions, source: :order
 
-    self.whitelisted_ransackable_associations = %w( parent_order )
+    self.whitelisted_ransackable_associations = %w( parent_order user )
 
     scope :paused, -> { where(paused: true) }
     scope :unpaused, -> { where(paused: false) }
     scope :disabled, -> { where(enabled: false) }
     scope :active, -> { where(enabled: true) }
     scope :not_cancelled, -> { where(cancelled_at: nil) }
+    scope :can_try, -> {where("attempts<?", TRY_LIMIT)}
     scope :with_appropriate_delivery_time, -> { where("next_occurrence_at <= :current_date", current_date: Time.current) }
-    scope :processable, -> { unpaused.active.not_cancelled }
+    scope :processable, -> { unpaused.active.not_cancelled.can_try }
     scope :eligible_for_subscription, -> { processable.with_appropriate_delivery_time }
     scope :with_parent_orders, -> (orders) { where(parent_order: orders) }
+    scope :processed_between, ->(bday, eday) { where("placed_at>? and placed_at<?", bday, eday)}
+    scope :with_error, -> { where("attempts>0")}
 
     with_options allow_blank: true do
       validates :price, numericality: { greater_than_or_equal_to: 0 }
@@ -45,6 +52,7 @@ module Spree
       validates :parent_order, uniqueness: { scope: :variant }
     end
     with_options presence: true do
+      validates :user_id
       #validates :quantity, :delivery_number, :price, :number, :variant, :parent_order, :frequency
       validates :cancellation_reasons, :cancelled_at, if: :cancelled
       validates :ship_address, :bill_address, :next_occurrence_at, :source, if: :enabled?
@@ -62,15 +70,24 @@ module Spree
 
     before_validation :set_next_occurrence_at, if: :can_set_next_occurrence_at?
     before_validation :set_cancelled_at, if: :can_set_cancelled_at?
-    before_update :not_cancelled?
+    #before_update :not_cancelled?
     before_validation :update_price, on: :update, if: :variant_id_changed?
     before_update :next_occurrence_at_not_changed?, if: :paused?
     after_update :notify_user, if: :user_notifiable?
     after_update :notify_cancellation, if: :cancellation_notifiable?
+    after_update :notify_uncancellation, if: :uncancellation_notifiable?
 
     def process
       new_order = recreate_order if deliveries_remaining?
       update(next_occurrence_at: next_occurrence_at_value) if new_order.try :completed?
+    end
+
+    def auto_delivery_price
+        price + auto_delivery_discount
+    end
+    def auto_delivery_discount
+      l=parent_order.line_items.where(variant: variant).first
+      l.adjustments.eligible.where(label:"Promotion (Auto Delivery)").first["amount"] / l.quantity
     end
 
     def cancel_with_reason(attributes)
@@ -105,12 +122,22 @@ module Spree
       end
     end
 
+    def uncancel
+      run_callbacks :uncancel do
+        update_attributes(cancelled_at: null, cancellation_reasons: "")
+      end
+    end
+
+    def delivered_number
+      recurring_orders_size
+    end
+
     def deliveries_remaining?
       number_of_deliveries_left > 0
     end
 
     def not_changeable?
-      cancelled? || !deliveries_remaining?
+      cancelled?
     end
 
     def send_prior_notification
@@ -167,12 +194,23 @@ module Spree
       end
 
       def recreate_order
+        begin
         order = make_new_order
         add_variant_to_order(order)
         add_shipping_address(order)
         add_delivery_method_to_order(order)
         add_payment_method_to_order(order)
         confirm_order(order)
+        self.place_status ="success"
+        rescue e
+          self.attempts =self.attempts+1
+          self.place_status ="fail"
+          self.last_error = e.to_s
+          self.placed_at=Time.now()
+        end
+        self.placed_at=Time.now()
+
+        self.save!
         order
       end
 
@@ -210,12 +248,12 @@ module Spree
 
       def order_attributes
         {
+            channel: 'order_groove',
           currency: parent_order.currency,
           guest_token: parent_order.guest_token,
           store: parent_order.store,
-          user: parent_order.user,
-          created_by: parent_order.user,
-          last_ip_address: parent_order.last_ip_address
+          user_id: self.user_id,
+          created_by: self.user
         }
       end
 
@@ -243,9 +281,17 @@ module Spree
         SubscriptionNotifier.notify_cancellation(self).deliver_later
       end
 
+      def notify_uncancellation
+        SubscriptionNotifier.notify_uncancellation(self).deliver_later
+      end
+
       def cancellation_notifiable?
         cancelled_at.present? && cancelled_at_changed?
       end
+
+    def uncancellation_notifiable?
+      !cancelled_at.present? && cancelled_at_changed?
+    end
 
       def reoccurrence_notifiable?
         next_occurrence_at_changed? && !!next_occurrence_at_was

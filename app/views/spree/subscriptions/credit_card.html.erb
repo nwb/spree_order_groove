@@ -3,7 +3,7 @@
 <h2>New Credit Card</h2>
 <% payment_method=Spree::PaymentMethod.where("name like '%Credit Card%'").first%>
 <div class="clearfix" >
-  <%= form_for @credit_card, :url => new_cc_update_admin_subscription_path do |cc_form| %>
+  <%= form_for @credit_card, :url => new_cc_update_subscription_path do |cc_form| %>
     <%#= image_tag 'credit_cards/credit_card.gif', :id => 'credit-card-image', :class => 'pull-right', :width => '170', :height => '28' %>
     <% param_prefix = "subscription_source" %>
 
@@ -33,9 +33,10 @@
     </div>
 
     <%= hidden_field_tag "#{param_prefix}[cc_type]", '', :id => "cc_type", :class => 'ccType' %>
+    <%= link_to "(#{Spree.t(:cancel)})", "#", :onclick => "$.unblockUI();" %>
+
     <div class=" text-right form-buttons" data-hook="buttons">
-      <%= submit_tag Spree.t(:submit_secure_payment), class: 'btn btn-lg btn-submit', :id => "checkout-link-button" %>
-      <script>Spree.disableSaveOnClick();</script>
+      <%= button_tag Spree.t(:submit_secure_payment), class: 'btn btn-lg btn-submit', :id => "checkout-link-button" %>
     </div>
   <% end %>
 </div>
@@ -44,25 +45,41 @@
 
 <script type="text/javascript">
 
-    jQuery(document).ready(function(){
+
         $( '#card_number, input[name*=verification_value]' ).change( function(){
             var that = $( this );
             that.val( that.val().replace( /\D/gi, ""));
         });
 
-        $( "#checkout_form_payment" ).validate({
-            submitHandler: function(form) {
+        var res;
+        var url= '<%= new_cc_update_subscription_path(@subscription) %>';
+
+        $( '#new_credit_card').submit(function( evt ){
                 $('#errorExplanation').hide();
                 // form = $(form);
+                    var form = $(this);
+                    form.ajaxSubmit({
+                        url: url,
+                        dataType: 'json',
+                        type: 'POST',
+                        success: function(data, status_text, xhr) {
+                            res=data;
+                            console.log(data)
+                            if (data.error)
+                                $(form).prepend('<div class="error">' + data.error + '</div>')
+                            else {
+                                //$('#payment_info').html(data);
+                                $('#name_on_card').html(data.name);
+                                $('#expiration').html(data.month+'/'+data.year);
+                                $('#display_number').html(data.last_digits);
+                                $('#cc_type').html(data.cc_type);
+                                
+                                $.unblockUI();
+                            }
+                        }
+                    });
+            evt.preventDefault();
 
-                dialog(
-                    "Payment Initialized.",
-                    "Secure servers are processing.",
-                    "<p>Thank you for your patience while we complete this transaction. </p>",
-                    "/loader.gif"
-                );
-                form.submit();
-            }
         });
 
         $('#checkout_form_payment input').on('keyup blur', function () { // fires on every keyup & blur
@@ -74,5 +91,4 @@
         });
 
 
-    });
 </script>

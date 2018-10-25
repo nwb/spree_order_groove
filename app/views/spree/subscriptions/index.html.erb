@@ -13,12 +13,11 @@
         <th><%= Spree.t(:price) %></th>
         <th class="text-center"><%= Spree.t(:recurring_delivery_interval) %></th>
         <th class="text-center"><%= Spree.t(:total_deliveries) %></th>
-        <th class="text-center"><%= Spree.t(:deliveries_left) %></th>
         <th data-hook="admin_subscriptions_index_header_actions" class="actions"></th>
       </tr>
     </thead>
     <tbody>
-      <%= render partial: 'spree/admin/subscriptions/subscription', collection: @subscriptions %>
+      <%= render partial: 'spree/subscriptions/subscription', collection: @subscriptions %>
     </tbody>
   </table>
 

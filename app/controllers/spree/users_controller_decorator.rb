@@ -1,7 +1,7 @@
 Spree::UsersController.class_eval do
 
   before_action :load_subscriptions, only: :show
-
+  
   private
 
     def load_subscriptions

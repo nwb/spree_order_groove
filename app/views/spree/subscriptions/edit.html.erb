@@ -1,33 +1,109 @@
-<div class="row">
-  <div class="h3 col-sm-6">Subscription <%= @subscription.number %></div>
-  <div class="col-sm-6 text-right h3" data-id="<%= @subscription.id %>">
-    <% if !@subscription.not_changeable? %>
-      <span id="pause_links">
-        <%= render partial: 'pause_links', locals: { btn_class: "btn" } %>
-      </span>
-      <span>
-        <%= link_to Spree.t("subscriptions.admin.cancel"), cancel_subscription_path(@subscription), method: :patch, class: 'btn-danger btn', data: { confirm: Spree.t("subscriptions.confirm.cancel") } %>
-      </span>
-    <% end %>
-  </div>
-</div>
 
+  <div class="h3">Subscription <%= @subscription.number %></div>
+  <style>
 
-<div class="m-t-25">
-  <%= render partial: 'spree/admin/shared/flash_messages' %>
-  <%= render partial: 'spree/admin/shared/error_messages', locals: { target: @subscription } %>
+  </style>
+
+  <%= flash_messages %>
+  <% if @subscription.errors.any? %>
+    <div id="errorExplanation" class="alert alert-danger" data-hook>
+      <h4><%= Spree.t(:oops_something_wrong) %>.</h4>
+      <p><%= Spree.t(:please_see_the_errors_below) %>:</p>
+
+    </div>
+  <% end %>
+<div class="subscription">
+<div id="cart-detail" class="">
 
   <%= form_for @subscription do |f| %>
-    <%= render partial: 'summary', locals: { f: f } %>
     <%= render partial: 'item', locals: { f: f } %>
-    <%= render partial: 'payment_info', locals: { f: f } %>
+    <%#= render partial: 'summary', locals: { f: f } %>
+
     <%= render partial: 'addresses', locals: { f: f } %>
-    <%= render partial: 'orders' %>
+
+    <%= render partial: 'payment_info', locals: { f: f } %>
+
+    <%#= render partial: 'orders' %>
+    <div class="clear"></div>
     <% unless @subscription.not_changeable? %>
-      <div>
-        <%= f.submit Spree.t(:update), class: "btn btn-success btn-lg" %>
+      <div class="center">
         <%= link_to Spree.t(:cancel), account_path, class: "btn btn-default btn-lg" %>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <%= f.submit Spree.t(:update), class: "btn btn-success btn-lg" %>
+
       </div>
+      <br>
     <% end %>
   <% end %>
 </div>
+</div>
+ <script>
+     $('._qty-spin-minus').on('click', function () {
+         var input = $(this).siblings('input[type="number"]'),
+             val = parseFloat(input.val()),
+             newVal = val - 1;
+         if (val > parseFloat(input[0].min)) {
+             input.val(newVal);
+             $(input).change();
+         }
+     });
+     $('._qty-spin-plus').on('click', function () {
+         var input = $(this).siblings('input[type="number"]'),
+             val = parseFloat(input.val()),
+             newVal = val + 1;
+         if (val < parseFloat(input[0].max)) {
+             input.val(newVal);
+             $(input).change();
+         }
+     });
+
+     var variant_<%=@subscription.variant_id %>={
+         original_price: <%= @subscription.variant.price %>,
+         one_time_price: <%= volume_array(@subscription.variant).to_json %> //["23.95","23.95","19.99","19.99","19.99","19.99"],
+     }
+
+     function update_product_info(obj,variant_id, d)
+     {
+         var current_item=$(obj).parents('.subscription')
+         var variant_obj=eval('variant_'+ variant_id);
+         var prices= variant_obj.one_time_price
+         var qty=$(obj).val()
+         var price=prices[qty-1] || prices[prices.length-1]
+
+         var single_price=prices[0]
+         var saved= variant_obj.original_price*100*qty/100-price*100*qty/100
+
+         var auto_delivery_discount= (price*d*qty/100).toFixed(2)
+
+         if (parseFloat(saved) > 0) {
+             $(current_item).find('.volume_price').show();
+         }
+         else {
+             $(current_item).find('.volume_price').hide();
+         }
+
+         $(current_item).find('.delivery_price').html('-$'+auto_delivery_discount);
+
+         $(current_item).find('.price_summary label').html('$'+(qty*(price-auto_delivery_discount)).toFixed(2));
+
+         $(current_item).find('#single_bottle_original_' + variant_id).html('$'+ (variant_obj.original_price*100*$(obj).val()/100).toFixed(2));
+         $(current_item).find('#single_bottle_save_' + variant_id).html('-$'+ parseFloat(saved).toFixed(2));
+
+         update_free_shipping();
+     }
+
+     function update_free_shipping(){
+         var sub_total=0;
+         $('.line-item:visible .price_summary label').each(function(){sub_total+=$(this).html().replace('$','')*1;})
+
+         if(sub_total>50.0)
+         {$('.not_free').hide();
+             $('.is_free').show();
+         }
+         else
+         {$('.not_free').show();
+             $('.is_free').hide();
+         }
+     }
+
+ </script>

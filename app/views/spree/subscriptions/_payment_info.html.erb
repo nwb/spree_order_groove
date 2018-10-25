@@ -1,21 +1,43 @@
-<fieldset data-hook="credit_card">
-  <legend><%= Spree.t(:credit_card) %><a href="<%= new_cc_admin_subscription_path(@subscription) %>">New Credit Card</a></legend>
-  <table class="table table-condensed table-bordered">
-    <tr>
-      <th width="20%"><%= Spree.t(:name_on_card) %>:</th>
-      <td><%= @subscription.source.name %></td>
-    </tr>
-    <tr>
-      <th><%= Spree.t(:card_type) %>:</th>
-      <td><%= @subscription.source.cc_type %></td>
-    </tr>
-    <tr>
-      <th><%= Spree.t(:card_number) %>:</th>
-      <td><%= @subscription.source.display_number %></td>
-    </tr>
-    <tr>
-      <th><%= Spree.t(:expiration) %>:</th>
-      <td><%= @subscription.source.month %>/<%= @subscription.source.year %></td>
-    </tr>
-  </table>
-</fieldset>
+<div class="col-md-4 col-xs-12">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h1 class="panel-title"><%= Spree.t(:payment_info) %></h1>
+    </div>
+    <div class="panel-body">
+      <% if !@subscription.not_changeable? %>
+    <%= link_to "Use a new card", new_cc_subscription_path(@subscription), class: "add", onclick: "show_newcc();return false;" %>
+      <% end %>
+    <div id="currentcc">
+      <p>
+        <span id="name_on_card"><%= @subscription.source.name %></span>
+        <br>
+      <span id="card_type"><%= @subscription.source.cc_type %></span>, last 4 digits: <span id="display_number"><%= @subscription.source.last_digits %></span>
+        <br>
+        <span id="expiration"><%= sprintf("%02d", @subscription.source.month) %>/<%= @subscription.source.year %></span>
+    </p>
+    </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+    function show_newcc(){
+    $.blockUI({
+        message: '<div class="new_cc_dialog" id="Dialog"></div>',
+        centerX: true, // set these to true if ever switching to use BlockUI centering
+        centerY: true,
+        fadeIn: 0,
+        fadeOut: 0,
+        css: {
+            width: '460px',
+            padding: '10px',
+            'border-radius': '5px',
+            cursor: 'default',
+            left:'35%',
+            top: '20%'
+        }
+    });
+
+      $('.new_cc_dialog').load('<%= new_cc_subscription_path(@subscription)%>');
+      return false;
+  }
+</script>
