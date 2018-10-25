@@ -1,0 +1,59 @@
+<% content_for :page_title do %>
+  Subscriptions
+<% end %>
+
+<%= render partial: 'spree/admin/shared/flash_messages' %>
+
+<% content_for :table_filter do %>
+  <div data-hook="admin_subscriptions_index_search">
+    <%= search_form_for [:admin, @search], :url => '/admin/subscriptionsreport'  do |f| %>
+      <div class="row">
+        <div class="col-xs-12 col-md-6">
+          <div class="input-group">
+            <%= f.text_field :completed_at_gt, class: 'datepicker datepicker-from form-control', value: params[:q][:completed_at_gt], placeholder: Spree.t(:start) %>
+            <span class="input-group-addon">
+                    <i class="icon icon-calendar"></i>
+                  </span>
+          </div>
+
+        </div>
+        <div class="col-xs-12 col-md-6">
+          <div class="input-group">
+            <%= f.text_field :completed_at_lt, class: 'datepicker datepicker-to form-control', value: params[:q][:completed_at_lt], placeholder: Spree.t(:stop) %>
+            <span class="input-group-addon">
+                    <i class="icon icon-calendar"></i>
+                  </span>
+          </div>
+        </div>
+      </div>
+      <div data-hook="admin_subscriptions_index_search_buttons" class="form-actions">
+        <%= button Spree.t(:filter_results), 'search' %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<div id="chart_subscriptions"></div>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+
+    google.charts.load('current', {'packages':['line']});
+    google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart() {
+
+        var data = new google.visualization.arrayToDataTable(<%=raw(@reports.to_json)%>);
+
+        var options = {
+            chart: {
+                title: 'count'
+            },
+            width: 900,
+            height: 300
+        };
+
+        var chart = new google.charts.Line(document.getElementById('chart_subscriptions'));
+
+        chart.draw(data, google.charts.Line.convertOptions(options));
+    }
+</script>

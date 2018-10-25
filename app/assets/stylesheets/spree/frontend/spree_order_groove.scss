@@ -1,0 +1,100 @@
+/*
+Placeholder manifest file.
+the installer will append this file to the app vendored assets here: 'vendor/assets/stylesheets/spree/frontend/all.css'
+*= require jquery-ui/datepicker
+*= require spree/frontend/datepicker
+*/
+
+.form-group {
+&.withError {
+label, .formError, .required {
+    color: red;
+}
+
+input {
+    border-color: red;
+}
+}
+}
+
+.m-t-25 {
+    margin-top: 10px;
+}
+
+.center{text-align:center;margin:auto;}
+
+.subscription{
+  #cart-detail {
+  border: 1px solid #ccc;
+  border-radius:5px;
+  border-color:#ccc !important;
+  font-weight:normal;
+
+  .edit_subscription {
+  font-weight: normal;
+  .subscription_head .col-md-2 {
+    padding: 0;
+  }
+  .subscription_head .col-md-4 {
+    padding: 0;
+  }
+  .subscription_head .col-md-6 {
+    padding: 0;
+  }
+  .subscription_head .col-md-8 {
+    padding: 0;
+  }
+  .subscription_head .col-xs-6 {
+    padding: 0;
+  }
+
+  .panel-body {
+    padding: 10px 15px;
+  }
+
+  .sub_content {
+    padding: 10px 15px;
+  }
+  .sub_content .cancel {
+    margin-top: 10px;
+  }
+
+  img {
+    width: 80px;
+  }
+  .item_title {
+    font-weight: bold;
+    padding-bottom: 15px;
+  }
+  .item_option {
+    font-weight: normal;
+  }
+  .form-group {
+    margin: 0px 10px 15px;
+  }
+
+  .delivery_price {
+    font-size: 18px;
+  }
+  .summary_label {
+    margin-top: 8px;
+    font-weight: bold;
+    font-size: 18px;
+  }
+  ._qty_helper {
+    display: inline;
+  }
+
+  .add {
+    text-decoration: underline;
+  }
+  .field_with_errors input {
+    border-color: red;
+  }
+  .formError {
+    color: red;
+    font-size: 0.8em;
+  }
+}
+}
+}
