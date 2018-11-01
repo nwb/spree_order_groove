@@ -11,5 +11,8 @@ module Spree
       validates :title, uniqueness: { case_sensitive: false }
     end
 
+    def every_title
+      "Every " + title
+    end
   end
 end
