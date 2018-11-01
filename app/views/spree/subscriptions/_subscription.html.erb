@@ -15,22 +15,24 @@
   end
 %>
 <div class="subscription_head">
-  <div class="col-md-3 col-xs-6">
+  <div class="col-md-4 col-xs-6">
     <h2 class="title"><%= @subscription.number %></h2>
     <div class="sub_content">
 
-      <label>Delivery <%= @subscription.quantity%> <%= @subscription.variant.product.package_unit || "bottles"%> every <%= @subscription.frequency.title%></label>
-
-      Next Order Date: <strong><%= @subscription.next_occurrence_at.to_date %></strong>
+      <div>Deliver <strong><%= @subscription.quantity%></strong> <%= (@subscription.variant.product.package_unit || "bottle").downcase %><%= @subscription.quantity>1 ? "s": ""%> every <strong><%= @subscription.frequency.title%></strong></div>
+      <div>Next Order Date: <strong><%= @subscription.next_occurrence_at.to_date %></strong></div>
       
       <br>
       <% if subscription.cancelled? %>
         Subscription Cancelled
       <% else %>
+        <lable>Last order placing status: </lable><%= subscription.place_status || 'NA'%>
+        <br>
         <span id="pause_links"><%= render partial: 'spree/subscriptions/pause_links', locals: { btn_class: "btn-xs" } %></span>
-        <%= link_to Spree.t(:edit), edit_subscription_path(subscription), class: "btn ajax_handler btn-xs btn-success" %>
+        <%= link_to Spree.t(:edit), edit_subscription_path(subscription), class: "btn btn-xs btn-info" %>
         <%= link_to Spree.t("subsriptions.admin.cancel"), "javascript:void(0)", class: "btn ajax_handler btn-xs btn-danger", data: { method: "PATCH", confirmation: Spree.t("subscriptions.confirm.cancel"), url: cancel_subscription_path(subscription) } %>
-      <% end %>
+
+    <% end %>
     </div>
   </div>
 
@@ -64,7 +66,7 @@
   </div>
 
 
-  <div class="col-md-4 col-xs-6">
+  <div class="col-md-3 col-xs-6">
     <h2 class="title">Price</h2>
     <div class="sub_content">
 

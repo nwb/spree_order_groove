@@ -1,15 +1,44 @@
 <% content_for :page_title do %>
   Subscriptions
 <% end %>
+<% if current_store.code.include? "pwb"
+     page= "pwb/autodelivery"
+   else
+     page=store.code + "/autodelivery"
+   end
+%>
+
+<h1 class="program_name">My Stay Well Auto Delivery</h1>
 
 <% if @subscriptions.present? %>
+  <p id="og_support" class="emptyHeader">
+    You can manage your Stay Well Auto Delivery subscriptions here. If you have any questions, please email customerservice@PetWellbeing.com or call (877) 633-2401 between 9:00 a.m. and 5:00 p.m. EST Monday
+    through Friday and we'll be happy to help you. You can also view Stay Well Auto Delivery FAQs 
+    <a class="pop_up" data-turbolinks="false" href="<%= page %>">here</a>.
+  </p>
+  
   <div id="cart-detail" class="subscription">
     <%= render partial: 'spree/subscriptions/subscription', collection: @subscriptions %>
-
   </div>
 
 <% else %>
-  <div class="alert alert-info no-objects-found">
-    <%= Spree.t(:no_resource_found, resource: plural_resource_name(Spree::Subscription)) %>
+  
+  <p id="og_support" class="emptyHeader">
+    You currently do not have any items set up for Stay Well Auto Delivery. To find out how to sign up or to read about the program benefits, read all auto delivery FAQs
+    <a class="pop_up" data-turbolinks="false" href="<%= page %>">here</a>.
+  </p>
+
+  <p class="main_no_sub_text">
+    With Auto Delivery, you'll always have the supplements you need to keep you at your best. You select the product and frequency, and we take care of the rest! You never need to remember to log in online and create a new order.&#8203;
+  </p>
+  <ul class="stay_well_points">
+    <li>Save 10% on all auto delivery orders
+    </li><li>You control order frequency, delivery schedule, and quantity - all online!
+  </li><li>We send you an email reminder before each delivery
+  </li><li>FREE to join and you can easily cancel online at anytime
+  </li></ul>
+
+  <div id="learn_more"><a class="pop_up" data-turbolinks="false" href="<%= page %>">Find Out More</a>
   </div>
+
 <% end %>

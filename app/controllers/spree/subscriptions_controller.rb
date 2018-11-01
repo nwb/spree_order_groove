@@ -95,6 +95,22 @@ module Spree
       end
     end
 
+    def sendnow
+      if @subscription.process
+        order=@subscription.orders.last
+        render json: {
+            flash: t('.success'),
+            url: edit_subscription_path(@subscription),
+            button_text: order.number,
+            confirmation: Spree.t("subscriptions.confirm.sendnow")
+        }, status: 200
+      else
+        render json: {
+            flash: t('.error')
+        }, status: 422
+      end
+    end
+    
     def pause
       if @subscription.pause
         render json: {
@@ -161,10 +177,18 @@ module Spree
           @subscription = Spree::Subscription.find(params[:id])
         end
 
+
         unless @subscription
           respond_to do |format|
             format.html { redirect_to account_path, error: Spree.t('subscriptions.alert.missing') }
             format.json { render json: { flash: Spree.t("subscriptions.alert.missing") }, status: 422 }
+          end
+        else
+          unless spree_current_user && spree_current_user.id==@subscription.user_id
+          respond_to do |format|
+            format.html { redirect_to account_path, error: Spree.t('subscriptions.alert.missing') }
+            format.json { render json: { flash: Spree.t("subscriptions.alert.missing") }, status: 422 }
+          end
           end
         end
       end

@@ -19,6 +19,7 @@ Spree::Core::Engine.routes.draw do
     resources :subscription_frequencies
     resources :subscriptions, except: [:new, :destroy, :show] do
       member do
+        patch :sendnow
         patch :pause
         patch :unpause
         get :cancellation
@@ -30,11 +31,12 @@ Spree::Core::Engine.routes.draw do
 
     end
     get "subscriptionsreport", to: "subscriptions#subscriptionsreport"
-
+    get "order_placing", to: "subscriptions#order_placing"
   end
 
   resources :subscriptions, except: [:new, :destroy, :show] do
     member do
+      patch :sendnow
       patch :pause
       patch :unpause
       patch :cancel

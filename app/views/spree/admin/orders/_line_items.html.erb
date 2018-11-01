@@ -32,6 +32,9 @@
               </td>
               <td class="line-item-qty-edit is-hidden">
                 <%= number_field_tag :quantity, item.quantity, min: 0, class: "line_item_quantity form-control", size: 5 %>
+                delivery every
+                <%= collection_select :item,:frequency, Spree::SubscriptionFrequency.all, :id, :title, {}, { class: 'select2' } %>
+
                 <div class="radio no-margint">
                   <%= label_tag :auto_delivery_true do %>
                     <%= radio_button :item, :auto_delivery, true %>
@@ -44,9 +47,7 @@
                     <%= Spree.t(:say_no) %>
                   <% end %>
                 </div>
-                     delivery every
-                <%= collection_select :item,:frequency, Spree::SubscriptionFrequency.all, :id, :title, {}, { class: 'select2' } %>
-              </td>
+                           </td>
               <td class="line-item-total text-center"><%= line_item_shipment_price(item, item.quantity) %></td>
               <td class="cart-line-item-delete actions actions-4 text-center" data-hook="cart_line_item_delete">
                 <% if can? :update, item %>

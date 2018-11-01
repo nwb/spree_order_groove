@@ -1,20 +1,31 @@
 <% content_for :page_title do %>
-  Subscriptions
+  Auto Delivery order Placing
 <% end %>
 
 <%= render partial: 'spree/admin/shared/flash_messages' %>
 
 <% content_for :table_filter do %>
   <div data-hook="admin_subscriptions_index_search">
-    <%= search_form_for [:admin, @search] do |f| %>
+    <%= search_form_for [:admin, @search], :url => '/admin/order_placing' do |f| %>
       <div class="row">
-        <div class="col-md-6">
-          <div class="form-group">
-            <%= f.label :user_email_cont, Spree.t(:customer_email) %>
-            <%= f.text_field :user_email_cont, tabindex: 1, class: "form-control js-quick-search-target" %>
-          </div>
-        </div>
+    <div class="col-xs-12 col-md-6">
+      <div class="input-group">
+        <%= f.text_field :placed_at_gt, class: 'datepicker datepicker-from form-control', value: params[:q][:placed_at_gt], placeholder: Spree.t(:start) %>
+        <span class="input-group-addon">
+                    <i class="icon icon-calendar"></i>
+                  </span>
       </div>
+
+    </div>
+    <div class="col-xs-12 col-md-6">
+      <div class="input-group">
+        <%= f.text_field :placed_at_lt, class: 'datepicker datepicker-to form-control', value: params[:q][:placed_at_lt], placeholder: Spree.t(:stop) %>
+        <span class="input-group-addon">
+                    <i class="icon icon-calendar"></i>
+                  </span>
+      </div>
+    </div>
+  </div>
       <div data-hook="admin_subscriptions_index_search_buttons" class="form-actions">
         <%= button Spree.t(:filter_results), 'search' %>
       </div>
@@ -29,18 +40,19 @@
       <th><%= Spree.t(:number) %></th>
       <th><%= Spree.t(:product_name) %></th>
       <th><%= Spree.t(:price) %></th>
-      <th class="text-center"><%= Spree.t(:started_at) %></th>
       <th class="text-center"><%= Spree.t(:recurring_delivery_interval) %></th>
-      <th class="text-center"><%= Spree.t(:total_deliveries) %></th>
+      <th class="text-center"><%= Spree.t(:placed_at) %></th>
       <th class="text-center"><%= Spree.t(:last_delivery_status) %></th>
       <th data-hook="admin_subscriptions_index_header_actions" class="actions"></th>
     </tr>
     </thead>
     <tbody>
-    <%= render partial: 'spree/admin/subscriptions/subscription', collection: @subscriptions %>
+    <% @subscriptions.each do |subscription|%>
+    <%= render partial: 'placing', locals: {subscription: subscription} %>
+    <% end %>
     </tbody>
   </table>
-  <%= paginate @subscriptions %>
+  <%#= paginate @subscriptions %>
 <% else %>
   <div class="alert alert-info no-objects-found">
     <%= Spree.t(:no_resource_found, resource: plural_resource_name(Spree::Subscription)) %>

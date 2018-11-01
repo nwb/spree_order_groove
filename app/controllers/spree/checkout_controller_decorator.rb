@@ -1,8 +1,8 @@
 Spree::CheckoutController.class_eval do
   #before_action :apply_autodelivery
-  before_action :set_cc_number
+  #before_action :set_cc_number
   before_action :create_autodelivery_user
-  after_action :create_autodelivery_order
+  #after_action :create_autodelivery_order
 
   # this action is to post to orderGroove
   def create_autodelivery_order

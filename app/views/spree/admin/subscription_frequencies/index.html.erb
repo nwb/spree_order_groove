@@ -17,7 +17,7 @@
       <% @subscription_frequencies.each do |subscription_frequency| %>
         <tr>
           <td><%= subscription_frequency.title.titleize %></td>
-          <td><%= subscription_frequency.weeks_count %> months</td>
+          <td><%= subscription_frequency.weeks_count %> weeks</td>
           <td class="actions actions-2 text-right">
             <%= link_to_edit subscription_frequency, no_text: true %>
             <%= link_to_delete subscription_frequency, no_text: true %>

@@ -1,8 +1,5 @@
 
   <div class="h3">Subscription <%= @subscription.number %></div>
-  <style>
-
-  </style>
 
   <%= flash_messages %>
   <% if @subscription.errors.any? %>
@@ -12,7 +9,7 @@
 
     </div>
   <% end %>
-<div class="subscription">
+<div id="autodelivery" class="subscription">
 <div id="cart-detail" class="">
 
   <%= form_for @subscription do |f| %>

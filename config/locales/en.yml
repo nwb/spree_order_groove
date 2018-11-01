@@ -22,8 +22,13 @@ en:
         subject: "%{frequency} %{number} Subscription Notice"
         order_details: 'Order Details'
     recurring_delivery_interval: "Auto Delivery Interval"
+    started_at: "Started At"
+    last_delivery_status: "Last Delivery Status"
 
     subscriptions:
+      sendnow:
+        success: "Auto delivery order is placed"
+        error: "There was some failure in placing order for this subscription"
       pause:
         success: "Subscription is paused"
         error: "There was some failure in pausing the subscription"
@@ -41,12 +46,16 @@ en:
         out_of_range: "Next Occurrence cannot be before today's date"
         not_changeable: "Subscription is either cancelled or all the deliveries are done."
       confirm:
+        sendnow: "Are you sure you want to place new order for this subscription now"
         pause: "Are you sure you want to pause this subscription"
         activate: "Are you sure you want to activate this subscription"
         cancel: "Are you sure to cancel this subscription. One cancelled it cannot be started again."
 
     admin:
       subscriptions:
+        sendnow:
+          success: "Auto delivery order is placed"
+          error: "There was some failure in placing order for this subscription"
         pause:
           success: "Subscription is currently paused"
           error: "There was some failure in pausing subscription"

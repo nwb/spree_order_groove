@@ -1,0 +1,18 @@
+<%tnow= Time.zone.at(Time.new())%>
+<p>This email is to inform you that your subscription has been created on <%= tnow.strftime("%B %d %Y at %I:%M %p") %>.</p>
+
+<p>
+  <strong>Your subscription details:</strong><br />
+  Subscription ID: <%= subscription.number %><br />
+  Subscribed product: <%= subscription.variant.product.name %><br />
+  Next order date: <%= subscription.next_occurrence_at.strftime("%B %d %Y at %I:%M %p") %><br />
+  <% if subscription.source %>
+  Will charge next order on your Credit card ending with: <%= subscription.source.last_digits %><br /><br />
+  <% else%>
+  Please update your credit card before next order
+  <% end %>
+</p>
+
+<p>
+We will send you another email <%=subscription.prior_notification_days_gap%> days before placing your next order.
+</p>

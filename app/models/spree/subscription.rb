@@ -9,6 +9,7 @@ module Spree
 
     ACTION_REPRESENTATIONS = {
                                pause: "Pause",
+                               sendnow: "Sendnow",
                                unpause: "Activate",
                                cancel: "Cancel"
                              }
@@ -41,6 +42,7 @@ module Spree
     scope :with_appropriate_delivery_time, -> { where("next_occurrence_at <= :current_date", current_date: Time.current) }
     scope :processable, -> { unpaused.active.not_cancelled.can_try }
     scope :eligible_for_subscription, -> { processable.with_appropriate_delivery_time }
+    scope :of_user, -> (user) {where(user_id: user.id)}
     scope :with_parent_orders, -> (orders) { where(parent_order: orders) }
     scope :processed_between, ->(bday, eday) { where("placed_at>? and placed_at<?", bday, eday)}
     scope :with_error, -> { where("attempts>0")}
@@ -64,7 +66,7 @@ module Spree
     define_model_callbacks :unpause, only: [:before]
     before_unpause :can_unpause?, :set_next_occurrence_at_after_unpause
     define_model_callbacks :process, only: [:after]
-    after_process :notify_reoccurrence, if: :reoccurrence_notifiable?
+    #after_process :notify_reoccurrence, if: :reoccurrence_notifiable?
     define_model_callbacks :cancel, only: [:before]
     before_cancel :set_cancellation_reason, if: :can_set_cancellation_reason?
 
@@ -78,7 +80,7 @@ module Spree
     after_update :notify_uncancellation, if: :uncancellation_notifiable?
 
     def process
-      new_order = recreate_order if deliveries_remaining?
+      new_order = recreate_order
       update(next_occurrence_at: next_occurrence_at_value) if new_order.try :completed?
     end
 
@@ -133,7 +135,7 @@ module Spree
     end
 
     def deliveries_remaining?
-      number_of_deliveries_left > 0
+      true
     end
 
     def not_changeable?
@@ -146,6 +148,34 @@ module Spree
       end
     end
 
+    def recreate_order_for_subscriptions subscriptions
+      begin
+        order = make_new_order
+        add_variants_to_order(order, subscriptions)
+        add_shipping_address(order)
+        add_delivery_method_to_order(order)
+        add_payment_method_to_order(order)
+        confirm_order(order)
+        subscriptions.each do |subscription|
+          subscription.place_status =order.number
+          subscription.next_occurrence_at= Time.current + subscription.frequency.weeks_count.week
+          subscription.save!
+        end
+      rescue e
+        subscriptions.each do |subscription|
+          subscription.attempts =self.attempts+1
+          subscription.place_status ="failed"
+          subscription.last_error = e.to_s
+        end
+      end
+      subscriptions.each do |subscription|
+        subscription.placed_at=Time.now()
+
+        subscription.save!
+      end
+      order
+    end
+    
     private
 
       def eligible_for_prior_notification?
@@ -174,23 +204,23 @@ module Spree
       end
 
       def next_occurrence_at_value
-        deliveries_remaining? ? Time.current + frequency.weeks_count.month : next_occurrence_at
+        Time.current + frequency.weeks_count.week
       end
 
       def can_set_next_occurrence_at?
-        enabled? && next_occurrence_at.nil? && deliveries_remaining?
+        enabled? && next_occurrence_at.nil?
       end
 
       def set_next_occurrence_at_after_unpause
-        self.next_occurrence_at = (Time.current > next_occurrence_at) ? next_occurrence_at + frequency.weeks_count.month : next_occurrence_at
+        self.next_occurrence_at = (Time.current > next_occurrence_at) ? next_occurrence_at + frequency.weeks_count.week : next_occurrence_at
       end
 
       def can_pause?
-        enabled? && !cancelled? && deliveries_remaining? && !paused?
+        enabled? && !cancelled? && !paused?
       end
 
       def can_unpause?
-        enabled? && !cancelled? && deliveries_remaining? && paused?
+        enabled? && !cancelled? && paused?
       end
 
       def recreate_order
@@ -201,12 +231,11 @@ module Spree
         add_delivery_method_to_order(order)
         add_payment_method_to_order(order)
         confirm_order(order)
-        self.place_status ="success"
+        self.place_status =order.number
         rescue e
           self.attempts =self.attempts+1
-          self.place_status ="fail"
+          self.place_status ="failed"
           self.last_error = e.to_s
-          self.placed_at=Time.now()
         end
         self.placed_at=Time.now()
 
@@ -220,6 +249,13 @@ module Spree
 
       def add_variant_to_order(order)
         order.contents.add(variant, quantity, {auto_delivery: 1})
+        order.next
+      end
+
+      def add_variants_to_order(order, subscriptions)
+        subscriptions.each do |subscription|
+          order.contents.add(subscription.variant, subscription.quantity, {auto_delivery: 1})
+        end
         order.next
       end
 
@@ -266,7 +302,7 @@ module Spree
       end
 
       def can_set_cancelled_at?
-        cancelled.present? && deliveries_remaining?
+        cancelled.present?
       end
 
       def set_cancellation_reason
@@ -274,7 +310,7 @@ module Spree
       end
 
       def can_set_cancellation_reason?
-        cancelled.present? && deliveries_remaining? && cancellation_reasons.nil?
+        cancelled.present? && cancellation_reasons.nil?
       end
 
       def notify_cancellation

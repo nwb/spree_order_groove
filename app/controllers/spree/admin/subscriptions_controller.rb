@@ -4,21 +4,21 @@ module Spree
 
       before_action :ensure_not_cancelled, only: [:update, :cancel, :cancellation, :pause, :unpause]
 
-      def index_old
+      def order_placing
         params[:q] = {} unless params[:q]
-         
-        if params[:q][:completed_at_gt].blank?
-          params[:q][:completed_at_gt] = Time.zone.now.beginning_of_month
+        params[:q][:place_status_cont] =""
+        if params[:q][:placed_at_gt].blank?
+          params[:q][:placed_at_gt] = Time.zone.now.beginning_of_day
         else
-          params[:q][:completed_at_gt] = Time.zone.parse(params[:q][:completed_at_gt]).beginning_of_day rescue Time.zone.now.beginning_of_month
+          params[:q][:placed_at_gt] = Time.zone.parse(params[:q][:placed_at_gt]).beginning_of_day rescue Time.zone.now.beginning_of_day
         end
 
-        if params[:q] && !params[:q][:completed_at_lt].blank?
-          params[:q][:completed_at_lt] = Time.zone.parse(params[:q][:completed_at_lt]).end_of_day rescue ""
+        if params[:q] && !params[:q][:placed_at_lt].blank?
+          params[:q][:placed_at_lt] = Time.zone.parse(params[:q][:placed_at_lt]).end_of_day rescue Time.zone.now.end_of_day
         end
 
-        @sd = Time.parse(params[:q][:completed_at_gt].to_s).beginning_of_day rescue Time.now.beginning_of_day
-        @ed = Time.parse( params[:q][:completed_at_lt].to_s).end_of_day rescue @sd.end_of_day
+        @sd = Time.parse(params[:q][:placed_at_gt].to_s).beginning_of_day rescue Time.now.beginning_of_day
+        @ed = Time.parse( params[:q][:placed_at_lt].to_s).end_of_day rescue @sd.end_of_day
 
         if @sd > @ed
           @sd, @ed = @ed.beginning_of_day, @sd.end_of_day
@@ -27,9 +27,10 @@ module Spree
         @days_in_report = (@ed+1).to_date - @sd.to_date
 
         time_range = @sd..@ed
-
+        #byebug
         @search=Spree::Subscription.search(params[:q])
-        @subscriptions = @search.result
+        #@subscriptions = @search.result.page(params[:page]).per(30)
+        @subscriptions=Spree::Subscription.where(:placed_at =>time_range ).page(params[:page]).per(30)
 
         #@search=Spree::Order.joins("join spree_orders_subscriptions on spree_orders_subscriptions.order_id = spree_orders.id join spree_subscriptions on spree_subscriptions.id = spree_orders_subscriptions.subscription_id").search(params[:q])
         #@autodelivery_orders = @search.result
@@ -147,6 +148,23 @@ module Spree
         else
           render json: {
             flash: t('.error')
+          }, status: 422
+        end
+      end
+
+      def sendnow
+        if @subscription.process
+          order=@subscription.orders.last
+          render json: {
+              flash: t('.success'),
+              url: edit_subscription_path(@subscription),
+              button_text: order.number,
+              next_occurrence_at: @subscription.next_occurrence_at.to_date,
+              confirmation: Spree.t("subscriptions.confirm.sendnow")
+          }, status: 200
+        else
+          render json: {
+              flash: t('.error')
           }, status: 422
         end
       end

@@ -14,7 +14,7 @@
   end
 %>
 <div class="subscription_head">
-<div class="col-md-2 col-xs-6">
+<div class="col-md-3 col-xs-6">
   <h2 class="title"> <%= Spree.t(:quantity) %></h2>
   <div class="sub_content">
     <% if !@subscription.not_changeable?%>
@@ -28,17 +28,19 @@
           <br>
           <% if !@subscription.not_changeable? %>
       <span>
-        <%= link_to 'Cancel', cancel_subscription_path(@subscription), method: :patch, class: 'cancel btn-danger btn', data: { confirm: Spree.t("subscriptions.confirm.cancel") } %>
+        <%= link_to 'Cancel', cancel_subscription_path(@subscription), method: :patch, class: 'cancel btn-danger btn btn-xs', data: { confirm: Spree.t("subscriptions.confirm.cancel") } %>
       </span>
     <!--span id="pause_links">
-              <%= link_to 'Pause', pause_subscription_path(@subscription), method: :patch, class: 'btn ajax_handler btn-warning', data: { confirm: Spree.t("subscriptions.confirm.pause") } %>
+              <%= link_to 'Pause', pause_subscription_path(@subscription), method: :patch, class: 'btn ajax_handler btn-xs btn-warning', data: { confirm: Spree.t("subscriptions.confirm.pause") } %>
     </span-->
+      <br> <br>
+      <%= button_link_to("Send Now", "javascript:void(0)", class: 'btn ajax_handler btn-xs btn-warning', data: { method: "PATCH", url: sendnow_subscription_path(@subscription), confirmation: Spree.t("subscriptions.confirm.sendnow") }, title: "Send it Now")%>
 
-          <% end %>
+  <% end %>
 </div>
 </div>
 
-      <div class="col-md-6 col-xs-6">
+      <div class="col-md-5 col-xs-6">
         <h2 class="title">Subscription Item</h2>
         <div class="sub_content">
 
@@ -106,7 +108,7 @@
 <div class="clear"></div>
 <hr class="divider"/>
       <div class="col-md-4 col-xs-6">
-        <strong>Next Order Date</strong>
+        <strong class="sub_content">Next Order Date</strong>
         <%= f.field_container :next_occurrence_at, class: ["form-group"] do %>
           <%= f.text_field :next_occurrence_at, class: "form-control datepicker subscription_next_occurrence_at", disabled: @subscription.not_changeable? || @subscription.paused?, value: @subscription.next_occurrence_at.to_date %>
           <%= f.error_message_on :next_occurrence_at %>
@@ -114,7 +116,7 @@
       </div>
 
       <div class="col-md-4 col-xs-6">
-        <strong>Delivery every</strong>
+        <strong class="sub_content">Delivery every</strong>
         <%= f.field_container :frequency, class: ["form-group"] do %>
           <%= f.collection_select :subscription_frequency_id, Spree::SubscriptionFrequency.all, :id, :title, {}, { class: "form-control", disabled: @subscription.not_changeable? } %>
           <%= f.error_message_on :frequency %>
@@ -122,7 +124,7 @@
 
       </div>
         <div class="col-md-4 col-xs-6">
-        <strong>Email Reminder</strong>
+        <strong class="sub_content">Email Reminder</strong>
 
         <div data-hook="prior_notification_days_gap">
           <%= f.field_container :prior_notification_days_gap, class: ["form-group"] do %>
