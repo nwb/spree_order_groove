@@ -99,6 +99,10 @@ AjaxHandler.prototype.handlePatchSuccess = function($target, response) {
   }
   $target.find(".translation_missing").html(response.button_text);
   $target.data("confirmation", response.confirmation);
+  if(response.to_link){
+      $target.after('<a href="'+ response.url +'">just placed with order '+ response.button_text +'</a>')
+      $target.remove();
+  }
 };
 
 AjaxHandler.prototype.handleCancelSuccess = function($target, response) {

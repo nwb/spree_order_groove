@@ -81,7 +81,7 @@
 
          $(current_item).find('.delivery_price').html('-$'+auto_delivery_discount);
 
-         $(current_item).find('.price_summary label').html('$'+(qty*(price-auto_delivery_discount)).toFixed(2));
+         $(current_item).find('.price_summary label').html('$'+(qty*price-auto_delivery_discount).toFixed(2));
 
          $(current_item).find('#single_bottle_original_' + variant_id).html('$'+ (variant_obj.original_price*100*$(obj).val()/100).toFixed(2));
          $(current_item).find('#single_bottle_save_' + variant_id).html('-$'+ parseFloat(saved).toFixed(2));

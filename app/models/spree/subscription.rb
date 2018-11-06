@@ -85,7 +85,7 @@ module Spree
     end
 
     def auto_delivery_price
-        price + auto_delivery_discount
+      variant.volume_price(quantity,nil,parent_order.currency) + auto_delivery_discount
     end
     def auto_delivery_discount
       l=parent_order.line_items.where(variant: variant).first

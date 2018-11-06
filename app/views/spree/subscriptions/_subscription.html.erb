@@ -69,6 +69,7 @@
   <div class="col-md-3 col-xs-6">
     <h2 class="title">Price</h2>
     <div class="sub_content">
+      <%vol_price=@subscription.variant.volume_price(@subscription.quantity,nil,@subscription.parent_order.currency)%>
 
       <%
         if volume_array(@subscription.variant)[0] < @subscription.variant.price_in(@subscription.parent_order.currency).price
@@ -83,20 +84,20 @@
       <div class="clear"></div>
       <div class="volume_price" style="display:<%=saving ? "block" : "none" %>;">
         <div class="left">Volume Discount:</div>
-        <div class="right original_price" id="single_bottle_save_<%= @subscription.variant_id %>">-<%= currency.symbol %><%= '%.2f' %  ((@subscription.variant.price_in(@subscription.parent_order.currency).price - volume_array(@subscription.variant)[@subscription.quantity-1]) * @subscription.quantity) %></div>
+        <div class="right original_price" id="single_bottle_save_<%= @subscription.variant_id %>">-<%= currency.symbol %><%= '%.2f' %  ((@subscription.variant.price_in(@subscription.parent_order.currency).price - vol_price) * @subscription.quantity) %></div>
         <div class="clear"></div>
       </div>
 
 
       <div class="left">Auto Delivery:</div>
-      <div class="right"><span class="delivery_price">-<%= Spree::Money.new(@subscription.price*d.to_i/100, :currency => currency) %></span></div>
+      <div class="right"><span class="delivery_price">-<%= Spree::Money.new(vol_price*d.to_i*@subscription.quantity/100, :currency => currency) %></span></div>
 
       <div class="clear"></div>
 
 
       <div class="left summary_label">You Pay:</div>
       <div class="right original_price price_summary">
-        <label><%= @subscription.price%></label>
+        <label><%= '%.2f' % ((vol_price - d.to_i* vol_price/100) *  @subscription.quantity) %></label>
       </div>
     </div>
   </div>

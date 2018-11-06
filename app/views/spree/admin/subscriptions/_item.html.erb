@@ -24,8 +24,13 @@
             <%= mini_image(@subscription.variant) %>
           </td>
           <td class="line-item-name text-center">
-            <%= collection_select(:subscription, :variant_id, @subscription.variant.product_variants, :id, :name, {}, data: { subscription_id: @subscription.id }) %>
-          </td>
+            <%= @subscription.variant.product.name%><br>
+            <%if @subscription.variant.product.has_variants? %>
+            <%= collection_select(:subscription, :variant_id, @subscription.variant.product.variants, :id, :sku, {}, data: { subscription_id: @subscription.id }) %>
+             <%else%>
+              <%= @subscription.variant.sku %>
+          <%end%>
+              </td>
           <td class="line-item-price text-center">
             <div data-hook="admin_subscription_price_form" data-subscription-id="<%= @subscription.id %>">
               <%= f.field_container :price, class: ["form-group"] do %>
@@ -55,3 +60,6 @@
     </table>
   </div>
 </div>
+<script>
+    $('.lazy-loaded').each(function(){$(this).attr('src',($(this).attr('data-src')));});
+</script>

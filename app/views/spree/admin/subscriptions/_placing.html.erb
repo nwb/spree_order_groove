@@ -24,7 +24,7 @@
         <%= button_link_to "", cancellation_admin_subscription_path(@subscription), class: 'btn-danger btn-sm', icon: 'cancel', title: "Cancel" %>
       </span>
       <br>
-      <%= button_link_to("Send Now", "javascript:void(0)", class: 'ajax_handler btn-success btn-sm', data: { method: "PATCH", url: sendnow_admin_subscription_path(@subscription), confirmation: Spree.t("subscriptions.confirm.sendnow") }, title: "Send it Now") if subscription.place_status=="failed" %>
+      <%= button_link_to("Send Now", "javascript:void(0)", class: 'ajax_handler btn-success btn-sm', data: { method: "PATCH", url: sendnow_admin_subscription_path(@subscription), confirmation: Spree.t("subscriptions.confirm.sendnow") }, title: "Send it Now")%>
     <% end %>
   </td>
 </tr>

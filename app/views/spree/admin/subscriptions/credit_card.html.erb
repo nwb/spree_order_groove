@@ -34,7 +34,7 @@
 
   <%= hidden_field_tag "#{param_prefix}[cc_type]", '', :id => "cc_type", :class => 'ccType' %>
   <div class=" text-right form-buttons" data-hook="buttons">
-    <%= submit_tag Spree.t(:submit_secure_payment), class: 'btn btn-lg btn-submit', :id => "checkout-link-button" %>
+    <%= submit_tag Spree.t(:update), class: 'btn btn-lg btn-success', :id => "checkout-link-button" %>
     <script>Spree.disableSaveOnClick();</script>
   </div>
     <% end %>
@@ -45,6 +45,19 @@
 <script type="text/javascript">
 
     jQuery(document).ready(function(){
+
+        $(".cardNumber").payment('formatCardNumber');
+        $(".cardExpiry").payment('formatCardExpiry');
+        $(".cardCode").payment('formatCardCVC');
+
+        $(document).on('click', '#cvv_link', function(event) {
+            var windowName = 'cvv_info';
+            var windowOptions = 'left=20,top=20,width=500,height=500,toolbar=0,resizable=0,scrollbars=1';
+            window.open($(this).attr('href'), windowName, windowOptions);
+            event.preventDefault();
+        } );
+
+
         $( '#card_number, input[name*=verification_value]' ).change( function(){
             var that = $( this );
             that.val( that.val().replace( /\D/gi, ""));

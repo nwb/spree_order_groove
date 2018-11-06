@@ -157,8 +157,9 @@ module Spree
           order=@subscription.orders.last
           render json: {
               flash: t('.success'),
-              url: edit_subscription_path(@subscription),
+              url: edit_admin_order_path(order),
               button_text: order.number,
+              to_link: true,
               next_occurrence_at: @subscription.next_occurrence_at.to_date,
               confirmation: Spree.t("subscriptions.confirm.sendnow")
           }, status: 200
