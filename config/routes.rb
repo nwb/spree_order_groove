@@ -39,6 +39,7 @@ Spree::Core::Engine.routes.draw do
       patch :sendnow
       patch :pause
       patch :unpause
+      get :cancel
       patch :cancel
       patch :uncancel
       get "new_cc", to: "subscriptions#new_cc"

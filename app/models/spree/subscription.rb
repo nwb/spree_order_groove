@@ -148,9 +148,26 @@ module Spree
       end
     end
 
+    def send_cc_expiration_notification
+      if eligible_for_cc_expiration?
+        SubscriptionNotifier.notify_for_cc_expiration(self).deliver_later
+      end
+    end
+
+    def send_oos_notification
+      if eligible_for_oos?
+        SubscriptionNotifier.notify_for_oos(self).deliver_later
+      end
+    end
+
     def recreate_order_for_subscriptions subscriptions
       begin
         order = make_new_order
+        oos_subscriptions, subscriptions= subscriptions.partition{|p| p.variant.in_stock?}
+        oos_subscriptions.each do|s|
+           s.update_attributes(next_occurrence_at: Time.current.to_date + 15.days)
+           s.send_oos_notification
+        end
         add_variants_to_order(order, subscriptions)
         add_shipping_address(order)
         add_delivery_method_to_order(order)
@@ -166,6 +183,7 @@ module Spree
           subscription.attempts =self.attempts+1
           subscription.place_status ="failed"
           subscription.last_error = e.to_s
+          SubscriptionNotifier.notify_for_placing_error(subscription).deliver_later
         end
       end
       subscriptions.each do |subscription|
@@ -180,6 +198,16 @@ module Spree
 
       def eligible_for_prior_notification?
         (next_occurrence_at.to_date - Time.current.to_date).round == prior_notification_days_gap
+      end
+
+      def eligible_for_cc_expiration?
+        cc=self.source
+        cc_expire=Date.new(cc.year,cc.month)
+        (cc_expire - Time.current.to_date).round == 30
+      end
+
+      def eligible_for_oos?
+        variant.in_stock?
       end
 
       def update_price
@@ -212,7 +240,7 @@ module Spree
       end
 
       def set_next_occurrence_at_after_unpause
-        self.next_occurrence_at = (Time.current > next_occurrence_at) ? next_occurrence_at + frequency.weeks_count.week : next_occurrence_at
+        self.next_occurrence_at = (Time.current > next_occurrence_at) ? Time.current + frequency.weeks_count.week : next_occurrence_at
       end
 
       def can_pause?

@@ -80,6 +80,7 @@ module Spree
         if @subscription.cancel
           format.json { render json: {
               subscription_id: @subscription.id,
+              url: cancel_subscription_path(@subscription),
               flash: t(".success"),
               method: Spree::Subscription::ACTION_REPRESENTATIONS[:cancel].upcase
             }, status: 200

@@ -23,6 +23,9 @@
           <%= number_field :subscription, :quantity, { min: 1,max:999, disabled: @subscription.not_changeable? , class: "form-control", onChange: "update_product_info(this,#{@subscription.variant_id},#{d})"} %>
     <% if !@subscription.not_changeable? %>
     <button class="_qty_helper  _qty-spin-plus" type="button"></button>
+      <% else %>
+      <br>
+      <label>Subscription Cancelled</label>
      <% end %>
           <%= f.error_message_on :quantity %>
           <br>

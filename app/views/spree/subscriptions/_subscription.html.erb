@@ -28,10 +28,13 @@
       <% else %>
         <lable>Last order placing status: </lable><%= subscription.place_status || 'NA'%>
         <br>
+        <div class="subscription_buttons">
         <span id="pause_links"><%= render partial: 'spree/subscriptions/pause_links', locals: { btn_class: "btn-xs" } %></span>
         <%= link_to Spree.t(:edit), edit_subscription_path(subscription), class: "btn btn-xs btn-info" %>
-        <%= link_to Spree.t("subsriptions.admin.cancel"), "javascript:void(0)", class: "btn ajax_handler btn-xs btn-danger", data: { method: "PATCH", confirmation: Spree.t("subscriptions.confirm.cancel"), url: cancel_subscription_path(subscription) } %>
+        <%#= link_to Spree.t("subsriptions.admin.cancel"), "javascript:void(0)", class: "btn btn-xs btn-danger", data: { method: "PATCH", confirmation: Spree.t("subscriptions.confirm.cancel"), url: cancel_subscription_path(subscription) } %>
+          <%= button_link_to Spree.t("subsriptions.admin.cancel"), cancel_subscription_path(@subscription), class: 'btn-danger btn-xs', icon: 'cancel', title: "Cancel" %>
 
+        </div>
     <% end %>
     </div>
   </div>

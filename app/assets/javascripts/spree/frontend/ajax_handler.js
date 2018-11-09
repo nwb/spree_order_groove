@@ -82,6 +82,7 @@ show_flash = function(type, message) {
 
 AjaxHandler.prototype.handlePatchSuccess = function($target, response) {
   this.hideFlashDivs();
+  console.log('the response: '+ response);
   $target.data("url", response.url);
   if (response.url.match("unpause")) {
     $(".subscription_next_occurrence_at").attr("disabled", "disabled");
@@ -102,6 +103,9 @@ AjaxHandler.prototype.handlePatchSuccess = function($target, response) {
   if(response.to_link){
       $target.after('<a href="'+ response.url +'">just placed with order '+ response.button_text +'</a>')
       $target.remove();
+  }
+  if (response.url.match("cancel")) {
+      $target.parents(".subscription_buttons").html('Subscription Cancelled');
   }
 };
 

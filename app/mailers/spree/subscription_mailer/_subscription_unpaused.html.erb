@@ -1,0 +1,9 @@
+<%tnow= Time.zone.at(Time.new())%>
+<p>This email is to inform you that your subscription resumed successfully <%= subscription.next_occurrence_at.strftime("%B %d %Y at %I:%M %p") %> for you based on your subscription <%= subscription.number %></p>
+
+<p>
+  <strong>Your subscription details:</strong><br />
+  Subscription ID: <%= subscription.number %><br />
+  Subscribed product: <%= subscription.variant.product.name %><br />
+  Next order date: <%= subscription.next_occurrence_at.strftime("%B %d %Y at %I:%M %p") %><br />
+</p>

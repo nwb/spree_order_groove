@@ -24,7 +24,7 @@
     <div class="clear"></div>
     <% unless @subscription.not_changeable? %>
       <div class="center">
-        <%= link_to Spree.t(:cancel), account_path, class: "btn btn-default btn-lg" %>
+        <%= link_to Spree.t(:cancel), account_path + '#autodelivery', class: "btn btn-default btn-lg" %>
         &nbsp;&nbsp;&nbsp;&nbsp;
         <%= f.submit Spree.t(:update), class: "btn btn-success btn-lg" %>
 
