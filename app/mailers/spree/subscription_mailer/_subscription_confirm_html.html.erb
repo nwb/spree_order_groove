@@ -5,7 +5,7 @@
   <strong>Your subscription details:</strong><br />
   Subscription ID: <%= subscription.number %><br />
   Subscribed product: <%= subscription.variant.product.name %><br />
-  Next order date: <%= subscription.next_occurrence_at.strftime("%B %d %Y at %I:%M %p") %><br />
+  Next order date: <%= subscription.next_occurrence_at.strftime("%B %d %Y") %><br />
   <% if subscription.source %>
   Will charge next order on your Credit card ending with: <%= subscription.source.last_digits %><br /><br />
   <% else%>

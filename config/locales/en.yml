@@ -50,6 +50,8 @@ en:
         pause: "Are you sure you want to pause this subscription"
         activate: "Are you sure you want to activate this subscription"
         cancel: "Are you sure to cancel this subscription. One cancelled it cannot be started again."
+      new_cc_update:
+        error: "Credit Card Error"
 
     admin:
       subscriptions:
@@ -67,6 +69,8 @@ en:
         cancellation:
           confirm: "Once cancelled, subscription can not be enabled again"
         error_on_already_cancelled: "Cancelled Subscription can not be processed."
+        new_cc_update:
+          error: "Credit Card Error"
 
   activerecord:
     errors:

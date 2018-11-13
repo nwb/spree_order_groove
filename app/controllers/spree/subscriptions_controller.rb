@@ -56,6 +56,7 @@ module Spree
     end
 
     def edit
+      @title="Subscription Edit"
     end
     def index
       @subscriptions = Spree::Subscription.joins("join spree_orders on spree_subscriptions.parent_order_id=spree_orders.id and spree_orders.user_id=", spree_current_user.id.to_s)
