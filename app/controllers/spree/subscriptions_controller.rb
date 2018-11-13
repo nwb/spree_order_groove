@@ -14,7 +14,7 @@ module Spree
 
     def new_cc_update
       #byebug
-      payment_method=Spree::PaymentMethod.where("name like '%Credit Card%'").first
+      payment_method=Spree::PaymentMethod.active.where("name like '%Credit Card%'").first
       source_attributes=params["subscription_source"].values
       source = payment_method.payment_source_class.new(params.require("subscription_source").permit(:name, :verification_value, :cc_type))
       source.expiry=params[:subscription_source]["expiry"]
