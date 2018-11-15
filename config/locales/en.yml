@@ -52,6 +52,7 @@ en:
         cancel: "Are you sure to cancel this subscription. One cancelled it cannot be started again."
       new_cc_update:
         error: "Credit Card Error"
+        success: "Subscription credit card updated"
 
     admin:
       subscriptions:
@@ -71,6 +72,7 @@ en:
         error_on_already_cancelled: "Cancelled Subscription can not be processed."
         new_cc_update:
           error: "Credit Card Error"
+          success: "Subscription credit card updated"
 
   activerecord:
     errors:

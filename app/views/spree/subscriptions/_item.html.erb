@@ -33,9 +33,14 @@
       <span>
         <%= link_to 'Cancel', cancel_subscription_path(@subscription), method: :patch, class: 'cancel btn-danger btn btn-xs', data: { confirm: Spree.t("subscriptions.confirm.cancel") } %>
       </span>
-    <!--span id="pause_links">
-              <%= link_to 'Pause', pause_subscription_path(@subscription), method: :patch, class: 'btn ajax_handler btn-xs btn-warning', data: { confirm: Spree.t("subscriptions.confirm.pause") } %>
-    </span-->
+      <br>
+    <span id="pause_links">
+      <% if @subscription.paused? %>
+  <%= link_to Spree.t(:activate), "javascript:void(0)", class: "btn ajax_handler btn-xs btn-success", data: { url: unpause_subscription_path(@subscription), method: "PATCH", confirmation: Spree.t("subscriptions.confirm.activate") } %>
+<% else %>
+  <%= link_to Spree.t(:pause), "javascript:void(0)", class: "btn ajax_handler btn-xs btn-warning", data: { url: pause_subscription_path(@subscription), method: "PATCH", confirmation: Spree.t("subscriptions.confirm.pause") } %>
+<% end %>
+    </span>
       <br> <br>
       <%= button_link_to("Send Now", "javascript:void(0)", class: 'btn ajax_handler btn-xs btn-warning', data: { method: "PATCH", url: sendnow_subscription_path(@subscription), confirmation: Spree.t("subscriptions.confirm.sendnow") }, title: "Send it Now")%>
 

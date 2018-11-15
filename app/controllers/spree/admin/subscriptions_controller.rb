@@ -105,11 +105,29 @@ module Spree
         end
         if res.success?
           #byebug      
-          @subscription.source=source
-          #@subscription.source.gateway_customer_profile_id= nil
-          payment_method.create_profile(@subscription)
-          @subscription.source.save!
-          @subscription.save!
+          payment=Spree::Payment.create(:order_id=>@subscription.parent_order.id,
+                                        :amount=>1.0,
+                                        :payment_method_id=>payment_method.id
+          )
+
+          payment.source = source
+          payment_method.create_profile(payment)
+          payment.source.save!
+
+          if params["apply_to_all"]
+            user= @subscription.user
+            subscriptions=user.subscriptions
+            subscriptions.each do |subscription|
+              subscription.source= payment.source
+              subscription.update_attributes(source: source, attempts:0)
+            end
+          else
+            @subscription.source= payment.source
+            @subscription.update_attributes(source: source, attempts:0)
+          end
+
+          payment.destroy
+          
           flash[:success] = t('.success')
           redirect_to(edit_admin_subscription_path(@subscription)) && return
         else

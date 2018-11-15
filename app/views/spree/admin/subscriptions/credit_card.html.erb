@@ -32,6 +32,11 @@
     <%= link_to "(#{Spree.t(:what_is_this)})", spree.content_path('cvv'), :target => '_blank', "data-hook" => "cvv_link", :id => "cvv_link" %>
   </div>
 
+    <div class="clear"></div>
+    <div class="field text-left form-group col-md-12 col-xs-12" data-hook="card_code">
+      <%= check_box_tag 'apply_to_all', '1', true %> <label>Apply to all my subscriptions</label>
+    </div>
+    
   <%= hidden_field_tag "#{param_prefix}[cc_type]", '', :id => "cc_type", :class => 'ccType' %>
   <div class=" text-right form-buttons" data-hook="buttons">
     <%= submit_tag Spree.t(:update), class: 'btn btn-lg btn-success', :id => "checkout-link-button" %>

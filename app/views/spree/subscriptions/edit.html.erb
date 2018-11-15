@@ -1,7 +1,10 @@
+<div class="right back_to_subscription">
+  <%= link_to "Return to My Auto Delivery", account_path + '#autodelivery', class: "" %>
+</div>
+  
+<div class="h3">Subscription <%= @subscription.number %></div>
 
-  <div class="h3">Subscription <%= @subscription.number %></div>
-
-  <%= flash_messages %>
+  <div class="clear"></div>
   <% if @subscription.errors.any? %>
     <div id="errorExplanation" class="alert alert-danger" data-hook>
       <h4><%= Spree.t(:oops_something_wrong) %>.</h4>
@@ -24,7 +27,7 @@
     <div class="clear"></div>
     <% unless @subscription.not_changeable? %>
       <div class="center">
-        <%= link_to Spree.t(:cancel), account_path + '#autodelivery', class: "btn btn-default btn-lg" %>
+        <%= link_to Spree.t(:cancel), account_path + '#autodelivery', class: "btn btn-default btn-lg", onclick: "if (!confirm('Are you sure you want to discard changes?')) return false" %>
         &nbsp;&nbsp;&nbsp;&nbsp;
         <%= f.submit Spree.t(:update), class: "btn btn-success btn-lg" %>
 

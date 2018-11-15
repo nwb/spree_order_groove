@@ -82,7 +82,6 @@ show_flash = function(type, message) {
 
 AjaxHandler.prototype.handlePatchSuccess = function($target, response) {
   this.hideFlashDivs();
-  console.log('the response: '+ response);
   $target.data("url", response.url);
   if (response.url.match("unpause")) {
     $(".subscription_next_occurrence_at").attr("disabled", "disabled");

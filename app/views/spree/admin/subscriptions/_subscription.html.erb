@@ -20,7 +20,7 @@
           <%= button_link_to "", "javascript:void(0)", class: 'btn-success ajax_handler btn-sm', icon: 'play', data: { method: "PATCH", url: unpause_admin_subscription_path(@subscription), confirmation: Spree.t("subscriptions.confirm.activate") }, title: "Activate" %>
         <% end %>
       </span>
-      <%= link_to_edit(subscription, no_text: true) if can? :edit, subscription %>
+      <%= button_link_to "", edit_admin_subscription_path(subscription), class: 'btn btn-primary btn-sm icon-link with-tip action-edit no-text', icon: 'edit', title: "Edit" %>
       <span>
         <%= button_link_to "", cancellation_admin_subscription_path(@subscription), class: 'btn-danger btn-sm', icon: 'cancel', title: "Cancel" %>
       </span>

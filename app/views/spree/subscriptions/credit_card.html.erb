@@ -1,7 +1,6 @@
 
 
 <h3>New Credit Card</h3>
-<% payment_method=Spree::PaymentMethod.where("name like '%Credit Card%'").first%>
 <div class="clearfix" >
   <%= form_for @credit_card, :url => new_cc_update_subscription_path do |cc_form| %>
     <%#= image_tag 'credit_cards/credit_card.gif', :id => 'credit-card-image', :class => 'pull-right', :width => '170', :height => '28' %>
@@ -34,6 +33,10 @@
     </div>
 
     <%= hidden_field_tag "#{param_prefix}[cc_type]", '', :id => "cc_type", :class => 'ccType' %>
+    <div class="clear"></div>
+    <div class="field text-left form-group col-md-12 col-xs-12" data-hook="card_code">
+    <%= check_box_tag 'apply_to_all', '1', true %> <label>Apply to all my subscriptions</label>
+    </div>
 
     <div class="clear"></div>
     <div class=" text-right form-buttons" data-hook="buttons">
@@ -71,6 +74,7 @@
                 $('#errorExplanation').hide();
                 // form = $(form);
                     var form = $(this);
+                    $(form).find('div.error').remove();
                     form.ajaxSubmit({
                         url: url,
                         dataType: 'json',
