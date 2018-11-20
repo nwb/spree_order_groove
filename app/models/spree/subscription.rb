@@ -162,25 +162,37 @@ module Spree
 
     def recreate_order_for_subscriptions subscriptions
       begin
-        order = make_new_order
-        oos_subscriptions, subscriptions= subscriptions.partition{|p| p.variant.in_stock?}
+        subscriptions, oos_subscriptions = subscriptions.partition{|p| p.variant.in_stock?}
         oos_subscriptions.each do|s|
            s.update_attributes(next_occurrence_at: Time.current.to_date + 15.days)
            s.send_oos_notification
         end
+        if subscriptions.length==0
+          return false
+        end
+        order = make_new_order
         add_variants_to_order(order, subscriptions)
         add_shipping_address(order)
         add_delivery_method_to_order(order)
         add_payment_method_to_order(order)
+        order.payments.last.process!
         confirm_order(order)
         subscriptions.each do |subscription|
           subscription.place_status =order.number
           subscription.next_occurrence_at= Time.current + subscription.frequency.weeks_count.week
+          subscription.attempts=0
           subscription.save!
         end
-      rescue e
+      rescue Spree::Core::GatewayError => ge
         subscriptions.each do |subscription|
-          subscription.attempts =self.attempts+1
+          subscription.attempts =subscription.attempts+1
+          subscription.place_status ="failed"
+          subscription.last_error = ge.to_s
+          SubscriptionNotifier.notify_for_placing_error(subscription).deliver_later
+        end
+      rescue Exception => e
+        subscriptions.each do |subscription|
+          subscription.attempts =subscription.attempts+1
           subscription.place_status ="failed"
           subscription.last_error = e.to_s
           SubscriptionNotifier.notify_for_placing_error(subscription).deliver_later
@@ -203,7 +215,7 @@ module Spree
       def eligible_for_cc_expiration?
         cc=self.source
         cc_expire=Date.new(cc.year,cc.month)
-        (cc_expire - Time.current.to_date).round == 30
+        (cc_expire - Time.current.to_date).round < 33
       end
 
       def eligible_for_oos?
@@ -258,9 +270,17 @@ module Spree
         add_shipping_address(order)
         add_delivery_method_to_order(order)
         add_payment_method_to_order(order)
+        #order.next
+        order.payments.last.process!
+        #order.updater.update
         confirm_order(order)
         self.place_status =order.number
-        rescue e
+        self.attempts=0
+        rescue Spree::Core::GatewayError => ge
+          self.attempts =self.attempts+1
+          self.place_status ="failed"
+          self.last_error = ge.to_s
+        rescue Exception => e
           self.attempts =self.attempts+1
           self.place_status ="failed"
           self.last_error = e.to_s
@@ -303,7 +323,6 @@ module Spree
         else
           order.payments.create(source: source, payment_method: source.payment_method, amount: order.total)
         end
-        order.next
       end
 
       def confirm_order(order)
