@@ -6,7 +6,7 @@ namespace :subscription do
       ss=Spree::Subscription.eligible_for_subscription.of_user(Spree::User.find(user_id))
       if ss.length>0
         if o=ss.last.recreate_order_for_subscriptions(ss)
-          puts "Place auto delivery order for user #{user_id}, created order #{o.number}"
+          puts "Place auto delivery order for user #{user_id}, created order #{o.number} with state #{o.state}"
         else
           puts "Place auto delivery order for user #{user_id}, FAILED"
         end

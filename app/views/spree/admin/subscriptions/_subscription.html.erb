@@ -5,7 +5,7 @@
   <td class="text-center"><%= subscription.created_at %></td>
   <td class="text-center"><%= subscription.frequency.title.titleize %></td>
   <td class="text-center"><%= subscription.delivered_number %></td>
-  <td class="text-center"><%= subscription.place_status %></td>
+  <td class="text-center"><span title="<%= subscription.place_status=="failed" ? subscription.last_error: ""%>"><%= subscription.place_status %></span></td>
   <td data-hook="admin_subscriptions_index_row_actions" class="actions actions-2 text-right">
     <% @subscription = subscription %>
     <% if !subscription.deliveries_remaining? %>
