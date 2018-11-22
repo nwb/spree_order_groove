@@ -37,26 +37,8 @@
   <% end %>
 </div>
 </div>
+<%= render partial: 'sub_edit_script' %>
  <script>
-     $('._qty-spin-minus').on('click', function () {
-         var input = $(this).siblings('input[type="number"]'),
-             val = parseFloat(input.val()),
-             newVal = val - 1;
-         if (val > parseFloat(input[0].min)) {
-             input.val(newVal);
-             $(input).change();
-         }
-     });
-     $('._qty-spin-plus').on('click', function () {
-         var input = $(this).siblings('input[type="number"]'),
-             val = parseFloat(input.val()),
-             newVal = val + 1;
-         if (val < parseFloat(input[0].max)) {
-             input.val(newVal);
-             $(input).change();
-         }
-     });
-
      var variant_<%=@subscription.variant_id %>={
          original_price: <%= @subscription.variant.price %>,
          one_time_price: <%= volume_array(@subscription.variant).to_json %> //["23.95","23.95","19.99","19.99","19.99","19.99"],

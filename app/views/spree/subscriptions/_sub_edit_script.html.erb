@@ -1,0 +1,20 @@
+<script>
+    $('._qty-spin-minus').on('click', function () {
+        var input = $(this).siblings('input[type="number"]'),
+            val = parseFloat(input.val()),
+            newVal = val - 1;
+        if (val > parseFloat(input[0].min)) {
+            input.val(newVal);
+            $(input).change();
+        }
+    });
+    $('._qty-spin-plus').on('click', function () {
+        var input = $(this).siblings('input[type="number"]'),
+            val = parseFloat(input.val()),
+            newVal = val + 1;
+        if (val < parseFloat(input[0].max)) {
+            input.val(newVal);
+            $(input).change();
+        }
+    });
+</script>

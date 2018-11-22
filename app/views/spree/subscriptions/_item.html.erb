@@ -14,7 +14,7 @@
   end
 %>
 <div class="subscription_head">
-<div class="col-md-3 col-xs-6">
+<div class="col-md-3 col-xs-5">
   <h2 class="title"> <%= Spree.t(:quantity) %></h2>
   <div class="sub_content">
     <% if !@subscription.not_changeable?%>
@@ -48,7 +48,7 @@
 </div>
 </div>
 
-      <div class="col-md-5 col-xs-6">
+      <div class="col-md-5 col-xs-7">
         <h2 class="title">Subscription Item</h2>
         <div class="sub_content">
 
@@ -78,7 +78,7 @@
       </div>
 
 
- <div class="col-md-4 col-xs-6">
+ <div class="col-md-4 col-xs-12">
    <h2 class="title">Price</h2>
         <div class="sub_content">
         <%vol_price=@subscription.variant.volume_price(@subscription.quantity,nil,@subscription.parent_order.currency)%>

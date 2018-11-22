@@ -20,14 +20,18 @@
   </div>
 </div>
 <script type="text/javascript">
-    function show_newcc(){
-    $.blockUI({
-        message: '<div class="new_cc_dialog" id="Dialog"></div>',
-        centerX: true, // set these to true if ever switching to use BlockUI centering
-        centerY: true,
-        fadeIn: 0,
-        fadeOut: 0,
-        css: {
+    if(isMobile()){
+        var css_option={
+            width: '95%',
+            padding: '2%',
+            'border-radius': '5px',
+            cursor: 'default',
+            left:'2%',
+            top: '10%'
+        }
+    }
+    else
+        var css_option={
             width: '460px',
             padding: '10px',
             'border-radius': '5px',
@@ -35,6 +39,14 @@
             left:'35%',
             top: '20%'
         }
+    function show_newcc(){
+    $.blockUI({
+        message: '<div class="new_cc_dialog" id="Dialog"></div>',
+        centerX: true, // set these to true if ever switching to use BlockUI centering
+        centerY: true,
+        fadeIn: 0,
+        fadeOut: 0,
+        css: css_option
     });
 
       $('.new_cc_dialog').load('<%= new_cc_subscription_path(@subscription)%>');
