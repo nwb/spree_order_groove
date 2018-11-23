@@ -3,7 +3,7 @@ module Spree
 
     before_action :ensure_subscription, except: [:index]
     before_action :ensure_not_cancelled, only: [:update, :cancel, :pause, :unpause]
-
+    after_action :log_action, except: [:new_cc, :show, :index, :edit, :comments]
     #before_action :update_cc, only: [:update]
 
 
@@ -186,9 +186,29 @@ module Spree
 
     private
 
+    def log_action
+      begin
+      if action_name=="update"
+        @subscription.comments.create(:title => "#{action_name} requested", :comment => "Sent #{action_name.upcase} to server with result:  #{sub_data}", :user => spree_current_user)
+      elsif action_name=="new_cc_update"
+        @subscription.comments.create(:title => "#{action_name} requested", :comment => "Sent #{action_name.upcase} to server with cc:  #{@subscription.source.last_digits}", :user => spree_current_user)
+      else
+        @subscription.comments.create(:title => "#{action_name} requested", :comment => "Sent #{action_name.upcase} to server", :user => spree_current_user)
+      end
+      rescue
+        #should we do more here. should be no error raised for this log.
+      end
+    end
 
-
-
+    def sub_data
+      changes=""
+      changes +=" frequency: "+ @subscription.subscription_frequency_id.to_s
+      changes +=" quantity: "+ @subscription.quantity.to_s
+      changes +=" <br>notification_days_gap: "+ @subscription.prior_notification_days_gap.to_s
+      changes +=" next order date: "+ @subscription.next_occurrence_at.to_date.to_s
+      changes +=" <br>ship address: "+ @subscription.ship_address.address1+ " "+ @subscription.ship_address.city + " " + @subscription.ship_address.zipcode.to_s
+      changes
+    end
     def subscription_attributes
         params.require(:subscription).permit(:quantity, :next_occurrence_at,
           :subscription_frequency_id, :variant_id, :prior_notification_days_gap,

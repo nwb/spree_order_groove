@@ -3,7 +3,8 @@ module Spree
     class SubscriptionsController < Spree::Admin::ResourceController
 
       before_action :ensure_not_cancelled, only: [:update, :cancel, :cancellation, :pause, :unpause]
-
+      after_action :log_action, except: [:new_cc, :show, :index, :edit, :order_placing, :subscriptionsreport, :build_source, :comments]
+      
       def order_placing
         params[:q] = {} unless params[:q]
         params[:q][:place_status_cont] =""
@@ -80,7 +81,25 @@ module Spree
 
       end
 
-      
+      def edit
+        @title="Subscription Edit"
+      end
+
+      def update
+        if @subscription.update(subscription_attributes)
+          flash[:success] = 'Subscription updated successfully'
+          respond_to do |format|
+            format.html { redirect_to edit_admin_subscription_path(@subscription), success: t('.success') }
+            format.json { render json: { subscription: { price: @subscription.price, id: @subscription.id } }, status: 200 }
+          end
+        else
+          respond_to do |format|
+            format.html { edit_admin_subscription_path(@subscription) }
+            format.json { render json: { errors: @subscription.errors.full_messages.to_sentence }, status: 422 }
+          end
+        end
+      end
+
       def new_cc
          @credit_card=Spree::CreditCard.new
          render :credit_card
@@ -205,7 +224,37 @@ module Spree
       end
 
       private
+      def log_action
+        begin
+          if action_name=="update"
+            @subscription.comments.create(:title => "#{action_name} requested", :comment => "Sent #{action_name.upcase} to server with result:  #{sub_data}", :user => spree_current_user)
+          elsif action_name=="new_cc_update"
+            @subscription.comments.create(:title => "#{action_name} requested", :comment => "Sent #{action_name.upcase} to server with cc:  #{@subscription.source.last_digits}", :user => spree_current_user)
+          else
+            @subscription.comments.create(:title => "#{action_name} requested", :comment => "Sent #{action_name.upcase} to server", :user => spree_current_user)
+          end
+        rescue
+          #should we do more here. should be no error raised for this log.
+        end
+      end
 
+      def sub_data
+        changes=""
+        changes +=" frequency: "+ @subscription.subscription_frequency_id.to_s
+        changes +=" quantity: "+ @subscription.quantity.to_s
+        changes +=" <br>notification_days_gap: "+ @subscription.prior_notification_days_gap.to_s
+        changes +=" next order date: "+ @subscription.next_occurrence_at.to_date.to_s
+        changes +=" <br>ship address: "+ @subscription.ship_address.address1+ " "+ @subscription.ship_address.city + " " + @subscription.ship_address.zipcode.to_s
+        changes
+      end
+
+      def subscription_attributes
+        params.require(:subscription).permit(:quantity, :next_occurrence_at,
+                                             :subscription_frequency_id, :variant_id, :prior_notification_days_gap,
+                                             ship_address_attributes: [:firstname, :lastname, :address1, :address2, :city, :zipcode, :country_id, :state_id, :phone],
+                                             bill_address_attributes: [:firstname, :lastname, :address1, :address2, :city, :zipcode, :country_id, :state_id, :phone])
+      end
+      
         def cancel_subscription_attributes
           params.require(:subscription).permit(:cancellation_reasons)
         end

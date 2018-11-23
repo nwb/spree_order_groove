@@ -1,7 +1,6 @@
 module Spree
   class Subscription < Spree::Base
-    #extend FriendlyId
-    #friendly_id :number, slug_column: :number, use: :history
+    acts_as_commentable
 
     attr_accessor :cancelled
 
@@ -177,11 +176,14 @@ module Spree
         add_payment_method_to_order(order)
         order.payments.last.process!
         confirm_order(order)
+        admin = Spree::Role.where(:name=>'admin').first.users.first
         subscriptions.each do |subscription|
           subscription.place_status =order.number
           subscription.next_occurrence_at= Time.current + subscription.frequency.weeks_count.week
           subscription.attempts=0
           subscription.save!
+          subscription.comments.create(:title => "auto delivery order created", :comment => "Placed order #{order.number}", :user => admin)
+
         end
       rescue Spree::Core::GatewayError => ge
         subscriptions.each do |subscription|

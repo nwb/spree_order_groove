@@ -25,6 +25,7 @@ Spree::Core::Engine.routes.draw do
         get :cancellation
         patch :cancel
         patch :uncancel
+        get :comments
         get "new_cc", to: "subscriptions#new_cc"
         post "new_cc_update", to: "subscriptions#new_cc_update"
       end

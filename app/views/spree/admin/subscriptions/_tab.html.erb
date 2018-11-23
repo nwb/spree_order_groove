@@ -1,0 +1,14 @@
+<% content_for :page_title do %>
+  <%= link_to @subscription.number, spree.edit_admin_subscription_path(@subscription) %>
+<% end %>
+<% content_for :sidebar do %>
+  <ul class="nav nav-pills nav-stacked" data-hook="admin_order_tabs">
+    <li <%== ' class="active"' if (defined? current and current == 'Comments') %>>
+      <% if @subscription.comments.any? %>
+        <%= link_to_with_icon 'comment', Spree.t(:comments_count, count: @subscription.comments.count), comments_admin_subscription_url(@subscription) %>
+      <% else %>
+        <%= link_to_with_icon 'comment', Spree.t(:comments), comments_admin_subscription_url(@subscription) %>
+      <% end %>
+    </li>
+  </ul>
+<% end %>

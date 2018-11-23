@@ -1,6 +1,6 @@
-<% content_for :page_title do %>
-  <%= Spree::Subscription.model_name.human %> <%= @subscription.number %>
-<% end %>
+<%= render partial: 'tab' %>
+
+
 
 <% content_for :page_actions do %>
   <span data-id="<%= @subscription.id %>">
@@ -26,3 +26,4 @@
     <%= render partial: 'spree/admin/shared/edit_resource_links' %>
   <% end %>
 <% end %>
+
