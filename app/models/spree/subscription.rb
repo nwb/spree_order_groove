@@ -72,7 +72,7 @@ module Spree
     before_validation :set_next_occurrence_at, if: :can_set_next_occurrence_at?
     before_validation :set_cancelled_at, if: :can_set_cancelled_at?
     #before_update :not_cancelled?
-    before_validation :update_price, on: :update, if: :variant_id_changed?
+    before_validation :update_price, on: :update, if: :need_update_price?
     before_update :next_occurrence_at_not_changed?, if: :paused?
     after_update :notify_user, if: :user_notifiable?
     after_update :notify_cancellation, if: :cancellation_notifiable?
@@ -84,11 +84,19 @@ module Spree
     end
 
     def auto_delivery_price
-      variant.volume_price(quantity,nil,parent_order.currency) + auto_delivery_discount
-    end
-    def auto_delivery_discount
-      l=parent_order.line_items.where(variant: variant).first
-      l.adjustments.eligible.where(label:"Promotion (Auto Delivery)").first["amount"] / l.quantity
+      d='10'
+      product= variant.product
+      pc=Spree::PromotionCategory.find_by_name("auto delivery")
+      pc.promotions.where(promotion_rules: product.promotion_rules)
+
+      prs=product.promotion_rules.where(promotion_id:pc.promotions)
+
+      if prs.length>0
+        promotion = prs.first.promotion
+        d= promotion.name.gsub(/[^[\d|\.]]/, '')
+      end
+
+      variant.volume_price(quantity,nil,parent_order.currency)*(100-d.to_i)/100
     end
 
     def cancel_with_reason(attributes)
@@ -210,6 +218,9 @@ module Spree
     
     private
 
+    def need_update_price?
+      :quantity_changed? || :variant_id_changed?
+    end
       def eligible_for_prior_notification?
         (next_occurrence_at.to_date - Time.current.to_date).round == prior_notification_days_gap
       end
@@ -226,7 +237,7 @@ module Spree
 
       def update_price
         if valid_variant?
-          self.price = variant.price
+          self.price = auto_delivery_price
         else
           self.errors.add(:variant_id, :does_not_belong_to_product)
         end

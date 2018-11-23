@@ -34,7 +34,7 @@
           <td class="line-item-price text-center">
             <div data-hook="admin_subscription_price_form" data-subscription-id="<%= @subscription.id %>">
               <%= f.field_container :price, class: ["form-group"] do %>
-                <%= f.text_field :price, class: "form-control", disabled: @subscription.not_changeable? %>
+                <%= f.text_field :price, class: "form-control", disabled: true %>
                 <%= f.error_message_on :price %>
               <% end %>
             </div>

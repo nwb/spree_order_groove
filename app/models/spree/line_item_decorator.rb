@@ -44,9 +44,10 @@ Spree::LineItem.class_eval do
 
 
     def subscription_attributes
+      ad_adjust=adjustments.eligible.where(label:"Promotion (Auto Delivery)").last["amount"] / quantity
       {
         subscription_frequency_id: frequency,
-        price: price+adjustments.where(source_type: "Spree::PromotionAction").sum(&:amount),
+        price: price + ad_adjust,
         variant: variant,
         quantity: quantity,
         user_id: order.user_id

@@ -20,9 +20,9 @@ AjaxHandler.prototype.bindEvents = function() {
     });
   });
 
-  _this.lineItemsTable.on('change', '#subscription_variant_id', function(){
+  /*_this.lineItemsTable.on('change', '#subscription_variant_id', function(){
     _this.updateVariant(this);
-  });
+  });    */
 
 };
 
