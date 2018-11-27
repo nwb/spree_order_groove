@@ -113,24 +113,26 @@ module Spree
         source.expiry=params[:subscription_source]["expiry"]
 
         source.number= params[:subscription_source][:number]
-        source.cc_type= @subscription.source.try_type_from_number
+        source.cc_type= source.try_type_from_number
         #@subscription.source.last_digits= nil
         source.payment_method_id = payment_method.id
         begin
-        res=payment_method.authorize(1, source, {})
-        rescue e
-          flash[:error] = e.to_s
-          redirect_to(new_cc_admin_subscription_path(@subscription)) && return
-        end
-        if res.success?
-          #byebug      
           payment=Spree::Payment.create(:order_id=>@subscription.parent_order.id,
                                         :amount=>1.0,
                                         :payment_method_id=>payment_method.id
           )
 
           payment.source = source
-          payment_method.create_profile(payment)
+          payment_method.create_profile(payment)  #authorize need profile before authorize
+        res=payment_method.authorize(1, source, {})
+        rescue e
+          flash[:error] = e.to_s
+          payment.destroy if payment
+          redirect_to(new_cc_admin_subscription_path(@subscription)) && return
+        end
+        if res.success?
+          #byebug      
+
           payment.source.save!
 
           if params["apply_to_all"]

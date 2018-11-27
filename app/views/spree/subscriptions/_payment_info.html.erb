@@ -9,11 +9,11 @@
       <% end %>
     <div id="currentcc">
       <p>
-        <span id="name_on_card"><%= @subscription.source.name %></span>
+        <span id="name_on_card"><%= @subscription.source ? @subscription.source.name : ""%></span>
         <br>
-      <span id="card_type"><%= @subscription.source.cc_type %></span>, last 4 digits: <span id="display_number"><%= @subscription.source.last_digits %></span>
+      <span id="card_type"><%= @subscription.source ? @subscription.source.cc_type : ""%></span>, last 4 digits: <span id="display_number"><%= @subscription.source ? @subscription.source.last_digits : ""%></span>
         <br>
-        <span id="expiration"><%= sprintf("%02d", @subscription.source.month) %>/<%= @subscription.source.year %></span>
+        <span id="expiration"><%= @subscription.source ? sprintf("%02d", @subscription.source.month) : ""%>/<%= @subscription.source ? @subscription.source.year : ""%></span>
     </p>
     </div>
     </div>
