@@ -10,6 +10,6 @@ Spree::Product.class_eval do
 
   scope :subscribable, -> { where(subscribable: true) }
 
-  validates :subscription_frequencies, presence: true, if: :subscribable?
+  #validates :subscription_frequencies, presence: true, if: :subscribable?
 
 end

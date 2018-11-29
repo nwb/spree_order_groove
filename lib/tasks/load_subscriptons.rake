@@ -32,13 +32,11 @@ namespace :subscription do
           user=Spree::User.find(row['Merchant Customer ID'])
           parent_order = Spree::Order.find_by_number(row['Originating Order ID'])
           if !user
-            puts "\n " + row["Subscription ID"] + " failed loading customer, please handle it manually"
-            puts row.to_s +"\n"
+            log_process_error(row)
             next
           end
           if !parent_order && user.orders.length==0
-            puts "\n " + row["Subscription ID"] + " failed loading parent order, please handle it manually"
-            puts row.to_s
+            log_process_error(row)
             next
           end
 
@@ -53,11 +51,20 @@ namespace :subscription do
           last_order = parent_order unless last_order
 
           begin
-          subscription=user.subscriptions.create(subscription_attributes_from_row(row, last_order, parent_order,store_code))
+            subscription_attributes= subscription_attributes_from_row(row, last_order, parent_order,store_code)
+
+            if !row["Subscription Cancel Date"].empty?
+              subscription_attributes[:cancelled_at]=row["Subscription Cancel Date"].to_date
+              subscription_attributes[:cancellation_reasons] ="cancelled by customer in orderGroove"
+            end
+          subscription=user.subscriptions.create(subscription_attributes)
 
           subscription.update_attribute(:created_at, row["Subscription Create Date"])
           subscription.update_attribute(:price, subscription.auto_delivery_price)
-
+          unless last_order==parent_order
+            subscription.update_attribute(:place_status, last_order.number)
+            subscription.update_attribute(:placed_at, last_order.completed_at)
+          end
           #check any placed orders
           user.orders.where(channel: 'order_groove').each do |order|
             #byebug
@@ -67,6 +74,7 @@ namespace :subscription do
           report_str << "but the credit card information is invalid." unless  subscription.source
             #user.create_song_with_tags row['song'], row['tags']
           rescue Exception => ex
+            log_process_error(row)
             puts "\n " + row["Subscription ID"] + " failed being created with error:"
             puts "" + ex.to_s
           end
@@ -79,8 +87,21 @@ namespace :subscription do
         puts report_str
       end
 
+      def log_process_error(row)
+         if row['Subscription Status']=="True"
+           puts ""
+           puts 50.times("*")
+           puts "ACTIVE subscription " + row["Subscription ID"] + " failed in migration, please handle it manually"
+           puts row.to_s
+           puts 50.times("*")
+           puts ""
+         else
+           puts "subscription " + row["Subscription ID"] + " failed in migration."
+         end
+
+      end
       def  subscription_attributes_from_row row, last_order, parent_order, store_code
-        {paused:!row['Subscription Status'],
+        {paused:(row['Subscription Status']=="True" ? 0 : 1),
           bill_address: get_bill_address_from_row(row),
           ship_address: get_ship_address_from_row(row),
           variant_id: row['Product ID'],
@@ -89,7 +110,7 @@ namespace :subscription do
           subscription_frequency_id: row['Frequency Every'].to_i,
           enabled: 1,
           prior_notification_days_gap: 10,
-          attempts: 1,
+          attempts: 2,
           next_occurrence_at: row['Next Order Date'],
           source:get_payment_source(row, last_order, store_code)
         }
@@ -98,7 +119,6 @@ namespace :subscription do
       def get_payment_source row, last_order, store_code
         hashkey= Spree::OrdergrooveConfiguration.account[store_code]["og_hashkey"]
         rc4=RC4.new(hashkey)
-        config=Spree::OrdergrooveConfiguration.account["#{store_code}"]
         last_source=last_order.payments.first.source
         expire_date=rc4.decrypt(Base64.decode64(row["CC Expiration Date"])).split('/')
         #if the same card just return
