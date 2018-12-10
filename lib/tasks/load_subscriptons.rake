@@ -1,5 +1,6 @@
 require 'pp'
 require 'net/sftp'
+require 'tempfile'
 require 'rc4'
 require 'nokogiri'
 require 'rubygems'
@@ -19,9 +20,27 @@ namespace :subscription do
         start_time = Time.now
         report_str = [ "process file #{file_name}: #{start_time.strftime( "%Y-%m-%d %H:%M:%S" )}"]
         success = true
-        csv_text=File.read(file_name)
+        #csv_text=File.read(file_name)
+
+        tfile=File.open(Rails.root.join(file_name.gsub('.csv','') + '_tmp.csv'), "w")
+        file = File.open(Rails.root.join(file_name))
+        file.each do |line|
+          #puts line
+
+          tfile << line  #if line.include? "True"
+          begin
+            #csv=CSV.parse_line(line)
+          rescue Exception => e
+            puts "Error: " + e.to_s
+            puts line.split(",").join("    ")
+          end
+
+          #puts line unless csv.length==51
+        end
+
+
         #csv_text = File.read(Rails.root.join(file_name)
-        csv = CSV.parse(csv_text, :headers => true, :encoding => 'ISO-8859-1')
+        csv = CSV.parse(File.read(tfile), :headers => true, :encoding => 'utf-8')
         #"Subscription Status""","Next Order Date","Originating Order ID","Merchant Customer ID","Email Address","First Name","Last Name","Product","Product ID","SKU",
         # "Frequency Every","Frequency Period","Quantity","CC Holder","CC Number","CC Type","CC Expiration Date",
         # "Billing First","Billing Last","Billing Address 1","Billing Address 2","Billing City","Billing State","Billing Zip","Billing Company","Billing Country","Billing Phone","Billing Fax",
@@ -29,14 +48,18 @@ namespace :subscription do
         # "Subscription Start Date","Subscription Create Date","Subscription Cancel Date","Order Counter","Public Offer ID","Subscription Extra Data","Subscription ID"
         csv.each do |row|
           #byebug
+          if !row['Merchant Customer ID']
+            puts "subscription " + row["Subscription ID"] + " no user data available in spree, ignored!"
+            next
+          end
           user=Spree::User.find(row['Merchant Customer ID'])
           parent_order = Spree::Order.find_by_number(row['Originating Order ID'])
           if !user
-            log_process_error(row)
+            puts "subscription " + row["Subscription ID"] + " no user data available in spree, ignored!"
             next
           end
           if !parent_order && user.orders.length==0
-            log_process_error(row)
+            puts "subscription " + row["Subscription ID"] + " no order data available in spree, ignored!"
             next
           end
 
@@ -51,14 +74,19 @@ namespace :subscription do
           last_order = parent_order unless last_order
 
           begin
+            #byebug
             subscription_attributes= subscription_attributes_from_row(row, last_order, parent_order,store_code)
 
-            if !row["Subscription Cancel Date"].empty?
-              subscription_attributes[:cancelled_at]=row["Subscription Cancel Date"].to_date
+            unless !row["Subscription Cancel Date"]
+              subscription_attributes[:cancelled_at]=Time.new(row["Subscription Cancel Date"])
               subscription_attributes[:cancellation_reasons] ="cancelled by customer in orderGroove"
             end
           subscription=user.subscriptions.create(subscription_attributes)
-
+          if !subscription
+            puts "FAILED in creating subscription"
+            log_process_error(row)
+            next
+          end
           subscription.update_attribute(:created_at, row["Subscription Create Date"])
           subscription.update_attribute(:price, subscription.auto_delivery_price)
           unless last_order==parent_order
@@ -90,10 +118,10 @@ namespace :subscription do
       def log_process_error(row)
          if row['Subscription Status']=="True"
            puts ""
-           puts 50.times("*")
+           puts "*" * 50
            puts "ACTIVE subscription " + row["Subscription ID"] + " failed in migration, please handle it manually"
            puts row.to_s
-           puts 50.times("*")
+           puts "*" * 50
            puts ""
          else
            puts "subscription " + row["Subscription ID"] + " failed in migration."
@@ -119,11 +147,13 @@ namespace :subscription do
       def get_payment_source row, last_order, store_code
         hashkey= Spree::OrdergrooveConfiguration.account[store_code]["og_hashkey"]
         rc4=RC4.new(hashkey)
+        if last_order.payments.length>0
         last_source=last_order.payments.first.source
+        end
         expire_date=rc4.decrypt(Base64.decode64(row["CC Expiration Date"])).split('/')
         #if the same card just return
         #byebug
-        if last_source.class=="CreditCard" && last_source.month==expire_date[0].to_i && last_source.year==expire_date[1].to_i
+        if last_source && last_source.class=="CreditCard" && last_source.month==expire_date[0].to_i && last_source.year==expire_date[1].to_i
           return last_source
         end
           # "CC Holder","CC Number","CC Type","CC Expiration Date",
