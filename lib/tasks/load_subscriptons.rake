@@ -22,25 +22,12 @@ namespace :subscription do
         success = true
         #csv_text=File.read(file_name)
 
-        tfile=File.open(Rails.root.join(file_name.gsub('.csv','') + '_tmp.csv'), "w")
+        #tfile=File.open(Rails.root.join(file_name.gsub('.csv','') + '_tmp.csv'), "w")
         file = File.open(Rails.root.join(file_name))
-        file.each do |line|
-          #puts line
-
-          tfile << line  #if line.include? "True"
-          begin
-            #csv=CSV.parse_line(line)
-          rescue Exception => e
-            puts "Error: " + e.to_s
-            puts line.split(",").join("    ")
-          end
-
-          #puts line unless csv.length==51
-        end
 
 
         #csv_text = File.read(Rails.root.join(file_name)
-        csv = CSV.parse(File.read(tfile), :headers => true, :encoding => 'utf-8')
+        csv = CSV.parse(File.read(file), :headers => true, :col_sep =>"|", :encoding => 'bom|utf-8')
         #"Subscription Status""","Next Order Date","Originating Order ID","Merchant Customer ID","Email Address","First Name","Last Name","Product","Product ID","SKU",
         # "Frequency Every","Frequency Period","Quantity","CC Holder","CC Number","CC Type","CC Expiration Date",
         # "Billing First","Billing Last","Billing Address 1","Billing Address 2","Billing City","Billing State","Billing Zip","Billing Company","Billing Country","Billing Phone","Billing Fax",
@@ -48,6 +35,9 @@ namespace :subscription do
         # "Subscription Start Date","Subscription Create Date","Subscription Cancel Date","Order Counter","Public Offer ID","Subscription Extra Data","Subscription ID"
         csv.each do |row|
           #byebug
+          unless row['Subscription Status']=="True"
+            next
+          end
           if !row['Merchant Customer ID']
             puts "subscription " + row["Subscription ID"] + " no user data available in spree, ignored!"
             next
@@ -70,8 +60,10 @@ namespace :subscription do
             next
           end
           
-          last_order = user.orders.where(channel: 'order_groove').last
+          last_order = user.orders.complete.where(channel: 'order_groove').last
           last_order = parent_order unless last_order
+
+          next if last_order && last_order.completed_at< Time.zone.now-25.weeks
 
           begin
             #byebug
@@ -129,6 +121,7 @@ namespace :subscription do
 
       end
       def  subscription_attributes_from_row row, last_order, parent_order, store_code
+        source=get_payment_source(row, last_order, store_code)
         {paused:(row['Subscription Status']=="True" ? 0 : 1),
           bill_address: get_bill_address_from_row(row),
           ship_address: get_ship_address_from_row(row),
@@ -140,15 +133,15 @@ namespace :subscription do
           prior_notification_days_gap: 10,
           attempts: 2,
           next_occurrence_at: row['Next Order Date'],
-          source:get_payment_source(row, last_order, store_code)
+          source: source
         }
       end
 
       def get_payment_source row, last_order, store_code
         hashkey= Spree::OrdergrooveConfiguration.account[store_code]["og_hashkey"]
         rc4=RC4.new(hashkey)
-        if last_order.payments.length>0
-        last_source=last_order.payments.first.source
+        if last_order.payments.completed.length>0
+          last_source=last_order.payments.completed.first.source
         end
         expire_date=rc4.decrypt(Base64.decode64(row["CC Expiration Date"])).split('/')
         #if the same card just return
@@ -187,6 +180,8 @@ namespace :subscription do
           source= payment.source
           payment.destroy
           source
+        else
+          last_source
         end
       end
 
@@ -200,8 +195,8 @@ namespace :subscription do
         end
          ship_address=Spree::Address.create(:firstname=>row['Shipping First'],
                                            :lastname=>row['Shipping Last'],
-                                           :address1=>row['Shipping Address 1'],
-                                           :address2=>row['Shipping Address 2'],
+                                           :address1=>(row['Shipping Address 1'] || '').gsub('comma',','),
+                                           :address2=>(row['Shipping Address 2'] || '').gsub('comma',','),
                                            :city=>row['Shipping City'],
                                            :state_id=>billstateid,
                                            :state_name=> billstatename,
@@ -221,8 +216,8 @@ namespace :subscription do
         end
         ship_address=Spree::Address.create(:firstname=>row['Billing First'],
                                            :lastname=>row['Billing Last'],
-                                           :address1=>row['Billing Address 1'],
-                                           :address2=>row['Billing Address 2'],
+                                           :address1=>(row['Billing Address 1'] || '').gsub('comma',','),
+                                           :address2=>(row['Billing Address 2'] || '').gsub('comma',','),
                                            :city=>row['Billing City'],
                                            :state_id=>billstateid,
                                            :state_name=> billstatename,
