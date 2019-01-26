@@ -35,6 +35,7 @@ namespace :subscription do
         # "Subscription Start Date","Subscription Create Date","Subscription Cancel Date","Order Counter","Public Offer ID","Subscription Extra Data","Subscription ID"
         csv.each do |row|
           #byebug
+          row['Subscription Status']="True" if row[0]=="True"
           unless row['Subscription Status']=="True"
             next
           end
