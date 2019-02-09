@@ -182,6 +182,7 @@ module Spree
         add_shipping_address(order)
         add_delivery_method_to_order(order)
         add_payment_method_to_order(order)
+        raise 'Address Error' unless (order.bill_address.valid? && order.ship_address.valid?)
         order.payments.last.process!
         confirm_order(order)
         admin = Spree::Role.where(:name=>'admin').first.users.first
@@ -261,7 +262,7 @@ module Spree
       end
 
       def can_set_next_occurrence_at?
-        enabled? && next_occurrence_at.nil?
+        enabled? && (next_occurrence_at.nil? || next_occurrence_at<Time.current)
       end
 
       def set_next_occurrence_at_after_unpause
@@ -346,7 +347,6 @@ module Spree
         {
             channel: 'order_groove',
           currency: parent_order.currency,
-          guest_token: parent_order.guest_token,
           store: parent_order.store,
           user_id: self.user_id,
           created_by: self.user

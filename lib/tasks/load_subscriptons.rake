@@ -64,7 +64,7 @@ namespace :subscription do
           last_order = user.orders.complete.where(channel: 'order_groove').last
           last_order = parent_order unless last_order
 
-          next if last_order && last_order.completed_at< Time.zone.now-25.weeks
+          next unless last_order && last_order.completed_at< Time.zone.now-25.weeks
 
           begin
             #byebug

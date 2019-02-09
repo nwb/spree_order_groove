@@ -32,7 +32,7 @@ Spree::LineItem.class_eval do
   def create_subscription!
     subscription= order.subscriptions.create! subscription_attributes
     subscription.update(
-        source: order.payments.from_credit_card.last.source,
+        source: order.payments.completed.from_credit_card.last.source,
         enabled: true,
         ship_address: order.ship_address.clone,
         bill_address: order.bill_address.clone
@@ -44,10 +44,10 @@ Spree::LineItem.class_eval do
 
 
     def subscription_attributes
-      ad_adjust=adjustments.eligible.where(label:"Promotion (Auto Delivery)").last["amount"] / quantity
+      #ad_adjust=adjustments.eligible.where(label:"Promotion (Auto Delivery)").last["amount"] / quantity
       {
         subscription_frequency_id: frequency,
-        price: price + ad_adjust,
+        #price: price + ad_adjust,
         variant: variant,
         quantity: quantity,
         user_id: order.user_id
