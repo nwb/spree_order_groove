@@ -50,7 +50,7 @@ module Spree
       validates :price, numericality: { greater_than_or_equal_to: 0 }
       validates :quantity, numericality: { greater_than: 0, only_integer: true }
       #validates :delivery_number, numericality: { greater_than_or_equal_to: :recurring_orders_size, only_integer: true }
-      validates :parent_order, uniqueness: { scope: :variant }
+      #validates :parent_order, uniqueness: { scope: :variant }
     end
     with_options presence: true do
       validates :user_id
