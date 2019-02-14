@@ -19,7 +19,7 @@ Spree::Order.class_eval do
   end
 
   def create_subscriptions
-    if state=="complete" && !!user_id
+    if state=="complete" && !!user_id && payments.completed.from_credit_card.length>0
     line_items.each do |line_item|
       line_item.create_subscription! if line_item.subscribable? && !line_item.subscription
     end
