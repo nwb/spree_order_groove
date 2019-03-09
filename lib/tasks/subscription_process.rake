@@ -5,10 +5,14 @@ namespace :subscription do
     user_ids.each do |user_id|
       ss=Spree::Subscription.eligible_for_subscription.of_user(Spree::User.find(user_id))
       if ss.length>0
+        begin
         if o=ss.last.recreate_order_for_subscriptions(ss)
           puts "Place auto delivery order for user #{user_id}, created order #{o.number} with state #{o.state}"
         else
           puts "Place auto delivery order for user #{user_id}, FAILED"
+        end
+        rescue Exception=>e
+          puts "Exception happened during placing auto delivery order for user #{user_id}: #{e.to_s}"
         end
       end
     end
