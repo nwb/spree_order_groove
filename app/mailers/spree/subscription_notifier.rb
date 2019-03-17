@@ -23,35 +23,49 @@ class Spree::SubscriptionNotifier < Hubspot::TransactionEmail::Mailer
   def notify_for_next_delivery(subscription)
     contact_properties = []
 
-    custom_properties = []
+    custom_properties = [
+        { name: "number", value: subscription.number },
+        { name: "next_occurrence_at", value: subscription.next_occurrence_at.strftime("%B %d %Y at %I:%M %p") }
+    ]
     notify_subscriber(subscription, "subscription_order_reminder_email_id", contact_properties, custom_properties)
   end
 
   def notify_for_cc_expiration(subscription)
     contact_properties = []
 
-    custom_properties = []
+    custom_properties = [
+        { name: "number", value: subscription.number },
+        { name: "next_occurrence_at", value: subscription.next_occurrence_at.strftime("%B %d %Y at %I:%M %p") }
+    ]
     notify_subscriber(subscription, "subscription_credit_card_expired_email_id", contact_properties, custom_properties)
   end
 
   def notify_for_oos(subscription)
     contact_properties = []
-
-    custom_properties = []
+    custom_properties = [
+        { name: "number", value: subscription.number },
+        { name: "next_occurrence_at", value: subscription.next_occurrence_at.strftime("%B %d %Y at %I:%M %p") }
+    ]
     notify_subscriber(subscription, "subscription_out_of_stock_email_id", contact_properties, custom_properties)
   end
 
   def notify_for_placing_error(subscription)
     contact_properties = []
 
-    custom_properties = []
+    custom_properties = [
+        { name: "number", value: subscription.number },
+        { name: "next_occurrence_at", value: subscription.next_occurrence_at.strftime("%B %d %Y at %I:%M %p") }
+    ]
     notify_subscriber(subscription, "subscription_generic_issue_email_id", contact_properties, custom_properties)
   end
 
   def notify_for_unpaused(subscription)
     contact_properties = []
 
-    custom_properties = []
+    custom_properties = [
+        { name: "number", value: subscription.number },
+        { name: "next_occurrence_at", value: subscription.next_occurrence_at.strftime("%B %d %Y at %I:%M %p") }
+    ]
     notify_subscriber(subscription, "subscription_reactivated_email_id", contact_properties, custom_properties)
   end
 
