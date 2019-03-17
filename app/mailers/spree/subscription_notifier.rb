@@ -1,31 +1,58 @@
 class Spree::SubscriptionNotifier < Hubspot::TransactionEmail::Mailer
 
   def notify_confirmation(subscription)
-    notify_subscriber(subscription, "subscription_recieved_email_id")
+    contact_properties = []
+
+    custom_properties = [
+        { name: "number", value: subscription.number },
+        { name: "next_occurrence_at", value: subscription.next_occurrence_at.strftime("%B %d %Y at %I:%M %p") }
+    ]
+    notify_subscriber(subscription, "subscription_recieved_email_id", contact_properties, custom_properties)
   end
 
   def notify_cancellation(subscription)
-    notify_subscriber(subscription, "subscription_canceled_email_id")
+    contact_properties = []
+
+    custom_properties = [
+        { name: "number", value: subscription.number },
+        { name: "cancellation_reasons", value: subscription.cancellation_reasons }
+    ]
+    notify_subscriber(subscription, "subscription_canceled_email_id", contact_properties, custom_properties)
   end
 
   def notify_for_next_delivery(subscription)
-    notify_subscriber(subscription, "subscription_order_reminder_email_id")
+    contact_properties = []
+
+    custom_properties = []
+    notify_subscriber(subscription, "subscription_order_reminder_email_id", contact_properties, custom_properties)
   end
 
   def notify_for_cc_expiration(subscription)
-    notify_subscriber(subscription, "subscription_credit_card_expired_email_id")
+    contact_properties = []
+
+    custom_properties = []
+    notify_subscriber(subscription, "subscription_credit_card_expired_email_id", contact_properties, custom_properties)
   end
 
   def notify_for_oos(subscription)
-    notify_subscriber(subscription, "subscription_out_of_stock_email_id")
+    contact_properties = []
+
+    custom_properties = []
+    notify_subscriber(subscription, "subscription_out_of_stock_email_id", contact_properties, custom_properties)
   end
 
   def notify_for_placing_error(subscription)
-    notify_subscriber(subscription, "subscription_generic_issue_email_id")
+    contact_properties = []
+
+    custom_properties = []
+    notify_subscriber(subscription, "subscription_generic_issue_email_id", contact_properties, custom_properties)
   end
 
   def notify_for_unpaused(subscription)
-    notify_subscriber(subscription, "subscription_reactivated_email_id")
+    contact_properties = []
+
+    custom_properties = []
+    notify_subscriber(subscription, "subscription_reactivated_email_id", contact_properties, custom_properties)
   end
 
   private
@@ -45,17 +72,9 @@ class Spree::SubscriptionNotifier < Hubspot::TransactionEmail::Mailer
                end
   end
 
-  def notify_subscriber(subscription, message_name)
+  def notify_subscriber(subscription, message_name, contact_properties, custom_properties)
     #byebug
     email_id=get_email_id(subscription, message_name)
-    contact_properties = []
-
-    custom_properties = [
-        #{ name: "email", value: subscription.user.email },
-        { name: "number", value: subscription.number },
-        #{ name: "product", value: subscription.variant.product.name },
-        { name: "next_occurrence_at", value: subscription.next_occurrence_at.strftime("%B %d %Y at %I:%M %p") }
-    ]
     begin
     mail(email_id: email_id, message: { to: subscription.user.email }, contact_properties: contact_properties, custom_properties: custom_properties) if email_id
     #mail(email_id: email_id, message: { to: subscription.user.email }) if email_id
