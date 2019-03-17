@@ -1,72 +1,74 @@
-class Spree::SubscriptionNotifier < ApplicationMailer
+class Spree::SubscriptionNotifier < Hubspot::TransactionEmail::Mailer
 
   def notify_confirmation(subscription)
-    notify_subscriber(subscription, "subscription_received", "subscription_confirm_html")
+    notify_subscriber(subscription, "subscription_recieved_email_id")
   end
 
   def notify_cancellation(subscription)
-    notify_subscriber(subscription, "subscription_canceled", "subscription_cancel_html")
+    notify_subscriber(subscription, "subscription_canceled_email_id")
   end
 
   def notify_for_next_delivery(subscription)
-    notify_subscriber(subscription, "subscription_notify", "subscription_next_delivery_html")
+    notify_subscriber(subscription, "subscription_order_reminder_email_id")
   end
 
   def notify_for_cc_expiration(subscription)
-    notify_subscriber(subscription, "subscription_cc_expiration", "subscription_cc_expiration")
+    notify_subscriber(subscription, "subscription_credit_card_expired_email_id")
   end
 
   def notify_for_oos(subscription)
-    notify_subscriber(subscription, "subscription_oos", "subscription_oos")
+    notify_subscriber(subscription, "subscription_out_of_stock_email_id")
   end
 
   def notify_for_placing_error(subscription)
-    notify_subscriber(subscription, "subscription_placing_error", "subscription_placing_error")
+    notify_subscriber(subscription, "subscription_generic_issue_email_id")
   end
 
   def notify_for_unpaused(subscription)
-    notify_subscriber(subscription, "subscription_unpaused", "subscription_cc_unpaused")
+    notify_subscriber(subscription, "subscription_reactivated_email_id")
   end
 
   private
-  
-  def notify_subscriber(subscription, message_name, template)
-    @subscription = subscription
 
-    store=@subscription.parent_order.store
-    email=@subscription.user.email
-    store_code=store.code
+  def get_email_id(subscription, email_name)
+    from_store=subscription.parent_order.store
+    email_id = if from_store.url.include? ".com"
+                 SpreeHubspot::Config.send('com_' + email_name)
+               elsif from_store.url.include? ".ca"
+                 SpreeHubspot::Config.send('ca_' + email_name)
+               elsif from_store.url.include? ".uk"
+                 SpreeHubspot::Config.send('uk_' + email_name)
+               elsif from_store.url.include? ".au"
+                 SpreeHubspot::Config.send('au_' + email_name)
+               elsif from_store.url.include? ".eu"
+                 SpreeHubspot::Config.send('eu_' + email_name)
+               end
+  end
 
-    bronto_config=Spree::BrontoConfiguration.new
-    message_text=message_name
-    message_name = bronto_config.account[store.code][message_text]
-    token= bronto_config.account[store_code]['token']
-    from_email= bronto_config.account[store_code]['from_address']
-    from_name= bronto_config.account[store_code]['from_name']
-    reply_email= bronto_config.account[store_code]['from_address']
-    email_options={:fromEmail =>from_email,:fromName => from_name, :replyEmail => reply_email}
+  def notify_subscriber(subscription, message_name)
+    #byebug
+    email_id=get_email_id(subscription, message_name)
+    contact_properties = []
 
-
-    view = ActionView::Base.new(Rails::Application::Configuration.new(Rails.root).paths["app/mailers/spree"])
-    view.view_paths<<File.join(File.dirname(__FILE__), '.')
-
-    attributes = {:First_Name => @subscription.bill_address.firstname,
-                  :Last_name => @subscription.bill_address.lastname}
-
-    attributes[:SENDTIME__CONTENT1] = ""
-    attributes[:SENDTIME__CONTENT2] = (view.render("subscription_mailer/" + template, :subscription => @subscription)).gsub(/\n/,'').html_safe
-
+    custom_properties = [
+        #{ name: "email", value: subscription.user.email },
+        { name: "number", value: subscription.number },
+        #{ name: "product", value: subscription.variant.product.name },
+        { name: "next_occurrence_at", value: subscription.next_occurrence_at.strftime("%B %d %Y at %I:%M %p") }
+    ]
     begin
-      communication = BrontoIntegration::Communication.new(token)
-      communication.trigger_delivery_by_id(message_name,email,'transactional','html',attributes,email_options)
-      admin = Spree::Role.where(:name=>'admin').first.users.first
-      subscription.comments.create(:title => "#{message_text} email sent", :comment => "Sent #{message_text} email to customer #{email}", :user => admin)
-
-    rescue => exception
-      #raise exception unless exception.to_s.include? 'Error Code: 303'
-      #end
+    mail(email_id: email_id, message: { to: subscription.user.email }, contact_properties: contact_properties, custom_properties: custom_properties) if email_id
+    #mail(email_id: email_id, message: { to: subscription.user.email }) if email_id
+    rescue Exception=> e
     end
+  end
 
+  def from_address
+    "no-reply@example.com"
+  end
+
+  def from_store
+    subscription.store
   end
 
 end
