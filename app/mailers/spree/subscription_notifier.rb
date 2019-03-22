@@ -4,7 +4,7 @@ class Spree::SubscriptionNotifier < Hubspot::TransactionEmail::Mailer
     contact_properties = []
 
     domain = 'http://' + subscription.parent_order.store.url + '/'
-    product_image = subscription.variant.images.length>0 ? subscription.variant.images.first.attachment.url(:original) : 'https://www.naturalwellbeing.com/assets/noimage/product.jpg'
+    product_image = (subscription.variant && subscription.variant.images.length>0) ? subscription.variant.images.first.attachment.url(:original) : 'https://www.naturalwellbeing.com/assets/noimage/product.jpg'
 
     custom_properties = [
         { name: "number", value: subscription.number },
@@ -24,7 +24,7 @@ class Spree::SubscriptionNotifier < Hubspot::TransactionEmail::Mailer
     contact_properties = []
 
     domain = 'http://' + subscription.parent_order.store.url + '/'
-    product_image = subscription.variant.images.length>0 ? subscription.variant.images.first.attachment.url(:original) : 'https://www.naturalwellbeing.com/assets/noimage/product.jpg'
+    product_image = (subscription.variant && subscription.variant.images.length>0) ? subscription.variant.images.first.attachment.url(:original) : 'https://www.naturalwellbeing.com/assets/noimage/product.jpg'
 
     custom_properties = [
         { name: "number", value: subscription.number },
@@ -44,7 +44,7 @@ class Spree::SubscriptionNotifier < Hubspot::TransactionEmail::Mailer
     contact_properties = []
 
     domain = 'http://' + subscription.parent_order.store.url + '/'
-    product_image = subscription.variant.images.length>0 ? subscription.variant.images.first.attachment.url(:original) : 'https://www.naturalwellbeing.com/assets/noimage/product.jpg'
+    product_image = (subscription.variant && subscription.variant.images.length>0) ? subscription.variant.images.first.attachment.url(:original) : 'https://www.naturalwellbeing.com/assets/noimage/product.jpg'
 
     custom_properties = [
         { name: "number", value: subscription.number },
@@ -64,7 +64,7 @@ class Spree::SubscriptionNotifier < Hubspot::TransactionEmail::Mailer
     contact_properties = []
 
     domain = 'http://' + subscription.parent_order.store.url + '/'
-    product_image = subscription.variant.images.length>0 ? subscription.variant.images.first.attachment.url(:original) : 'https://www.naturalwellbeing.com/assets/noimage/product.jpg'
+    product_image = (subscription.variant && subscription.variant.images.length>0) ? subscription.variant.images.first.attachment.url(:original) : 'https://www.naturalwellbeing.com/assets/noimage/product.jpg'
 
     custom_properties = [
         { name: "number", value: subscription.number },
@@ -84,7 +84,7 @@ class Spree::SubscriptionNotifier < Hubspot::TransactionEmail::Mailer
     contact_properties = []
 
     domain = 'http://' + subscription.parent_order.store.url + '/'
-    product_image = subscription.variant.images.length>0 ? subscription.variant.images.first.attachment.url(:original) : 'https://www.naturalwellbeing.com/assets/noimage/product.jpg'
+    product_image = (subscription.variant && subscription.variant.images.length>0) ? subscription.variant.images.first.attachment.url(:original) : 'https://www.naturalwellbeing.com/assets/noimage/product.jpg'
 
     custom_properties = [
         { name: "number", value: subscription.number },
@@ -104,7 +104,7 @@ class Spree::SubscriptionNotifier < Hubspot::TransactionEmail::Mailer
     contact_properties = []
 
     domain = 'http://' + subscription.parent_order.store.url + '/'
-    product_image = subscription.variant.images.length>0 ? subscription.variant.images.first.attachment.url(:original) : 'https://www.naturalwellbeing.com/assets/noimage/product.jpg'
+    product_image = (subscription.variant && subscription.variant.images.length>0) ? subscription.variant.images.first.attachment.url(:original) : 'https://www.naturalwellbeing.com/assets/noimage/product.jpg'
 
     custom_properties = [
         { name: "number", value: subscription.number },
@@ -124,7 +124,7 @@ class Spree::SubscriptionNotifier < Hubspot::TransactionEmail::Mailer
     contact_properties = []
 
     domain = 'http://' + subscription.parent_order.store.url + '/'
-    product_image = subscription.variant.images.length>0 ? subscription.variant.images.first.attachment.url(:original) : 'https://www.naturalwellbeing.com/assets/noimage/product.jpg'
+    product_image = (subscription.variant && subscription.variant.images.length>0) ? subscription.variant.images.first.attachment.url(:original) : 'https://www.naturalwellbeing.com/assets/noimage/product.jpg'
 
     custom_properties = [
         { name: "number", value: subscription.number },
