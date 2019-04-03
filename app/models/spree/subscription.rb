@@ -229,7 +229,7 @@ module Spree
       def eligible_for_cc_expiration?
         cc=self.source
         cc_expire=Date.new(cc.year,cc.month)
-        (cc_expire - Time.current.to_date).round < 33
+        (cc_expire - Time.current.to_date).round < 33 && !cancelled? && !paused?
       end
 
       def eligible_for_oos?
