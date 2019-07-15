@@ -185,6 +185,7 @@ module Spree
         raise 'Address Error' unless (order.bill_address.valid? && order.ship_address.valid?)
         order.payments.last.process!
         confirm_order(order)
+        Delayed::Job.enqueue Spree::DelayedZinreloPostOrder.new(order.id), 0, 1.minute.from_now
         admin = Spree::Role.where(:name=>'admin').first.users.first
         subscriptions.each do |subscription|
           subscription.place_status =order.number
@@ -288,6 +289,7 @@ module Spree
         order.payments.last.process!
         #order.updater.update
         confirm_order(order)
+        Delayed::Job.enqueue Spree::DelayedZinreloPostOrder.new(order.id), 0, 1.minute.from_now
         self.place_status =order.number
         self.attempts=0
         rescue Spree::Core::GatewayError => ge
