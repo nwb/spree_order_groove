@@ -13,7 +13,7 @@ class Spree::SubscriptionNotifier < Hubspot::TransactionEmail::Mailer
         { name: "product_name", value: subscription.variant.product.name },
         { name: "sku", value: subscription.variant.sku },
         { name: "quantity", value: subscription.quantity },
-        { name: "price", value: subscription.price },
+        { name: "price", value: sprintf("%0.2f",subscription.price .to_s)},
         { name: "product_url", value: domain + 'products/' + subscription.variant.product.slug},
         { name: "image_url", value: product_image }
     ]
@@ -33,7 +33,7 @@ class Spree::SubscriptionNotifier < Hubspot::TransactionEmail::Mailer
         { name: "product_name", value: subscription.variant.product.name },
         { name: "sku", value: subscription.variant.sku },
         { name: "quantity", value: subscription.quantity },
-        { name: "price", value: subscription.price },
+        { name: "price", value: sprintf("%0.2f",subscription.price .to_s) },
         { name: "product_url", value: domain + 'products/' + subscription.variant.product.slug},
         { name: "image_url", value: product_image }
     ]
@@ -53,7 +53,7 @@ class Spree::SubscriptionNotifier < Hubspot::TransactionEmail::Mailer
         { name: "product_name", value: subscription.variant.product.name },
         { name: "sku", value: subscription.variant.sku },
         { name: "quantity", value: subscription.quantity },
-        { name: "price", value: subscription.price },
+        { name: "price", value: sprintf("%0.2f",subscription.price .to_s) },
         { name: "product_url", value: domain + 'products/' + subscription.variant.product.slug},
         { name: "image_url", value: product_image }
     ]
@@ -73,7 +73,7 @@ class Spree::SubscriptionNotifier < Hubspot::TransactionEmail::Mailer
         { name: "product_name", value: subscription.variant.product.name },
         { name: "sku", value: subscription.variant.sku },
         { name: "quantity", value: subscription.quantity },
-        { name: "price", value: subscription.price },
+        { name: "price", value: sprintf("%0.2f",subscription.price .to_s) },
         { name: "product_url", value: domain + 'products/' + subscription.variant.product.slug},
         { name: "image_url", value: product_image }
     ]
@@ -93,7 +93,7 @@ class Spree::SubscriptionNotifier < Hubspot::TransactionEmail::Mailer
         { name: "product_name", value: subscription.variant.product.name },
         { name: "sku", value: subscription.variant.sku },
         { name: "quantity", value: subscription.quantity },
-        { name: "price", value: subscription.price },
+        { name: "price", value: sprintf("%0.2f",subscription.price .to_s) },
         { name: "product_url", value: domain + 'products/' + subscription.variant.product.slug},
         { name: "image_url", value: product_image }
     ]
@@ -113,7 +113,7 @@ class Spree::SubscriptionNotifier < Hubspot::TransactionEmail::Mailer
         { name: "product_name", value: subscription.variant.product.name },
         { name: "sku", value: subscription.variant.sku },
         { name: "quantity", value: subscription.quantity },
-        { name: "price", value: subscription.price },
+        { name: "price", value: sprintf("%0.2f",subscription.price .to_s) },
         { name: "product_url", value: domain + 'products/' + subscription.variant.product.slug},
         { name: "image_url", value: product_image }
     ]
@@ -133,7 +133,7 @@ class Spree::SubscriptionNotifier < Hubspot::TransactionEmail::Mailer
         { name: "product_name", value: subscription.variant.product.name },
         { name: "sku", value: subscription.variant.sku },
         { name: "quantity", value: subscription.quantity },
-        { name: "price", value: subscription.price },
+        { name: "price", value: sprintf("%0.2f",subscription.price .to_s) },
         { name: "product_url", value: domain + 'products/' + subscription.variant.product.slug},
         { name: "image_url", value: product_image }
     ]
