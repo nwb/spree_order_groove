@@ -15,6 +15,7 @@ class Spree::SubscriptionNotifier < Hubspot::TransactionEmail::Mailer
         { name: "quantity", value: subscription.quantity },
         { name: "price", value: sprintf("%0.2f",subscription.price .to_s)},
         { name: "product_url", value: domain + 'products/' + subscription.variant.product.slug},
+        { name: "sub_email_reminder_days", value: subscription.prior_notification_days_gap},
         { name: "image_url", value: product_image }
     ]
     notify_subscriber(subscription, "subscription_recieved_email_id", contact_properties, custom_properties)
@@ -55,6 +56,7 @@ class Spree::SubscriptionNotifier < Hubspot::TransactionEmail::Mailer
         { name: "quantity", value: subscription.quantity },
         { name: "price", value: sprintf("%0.2f",subscription.price .to_s) },
         { name: "product_url", value: domain + 'products/' + subscription.variant.product.slug},
+        { name: "sub_email_reminder_days", value: subscription.prior_notification_days_gap},
         { name: "image_url", value: product_image }
     ]
     notify_subscriber(subscription, "subscription_order_reminder_email_id", contact_properties, custom_properties)
@@ -75,6 +77,7 @@ class Spree::SubscriptionNotifier < Hubspot::TransactionEmail::Mailer
         { name: "quantity", value: subscription.quantity },
         { name: "price", value: sprintf("%0.2f",subscription.price .to_s) },
         { name: "product_url", value: domain + 'products/' + subscription.variant.product.slug},
+        { name: "sub_email_reminder_days", value: subscription.prior_notification_days_gap},
         { name: "image_url", value: product_image }
     ]
     notify_subscriber(subscription, "subscription_credit_card_expired_email_id", contact_properties, custom_properties)
@@ -143,6 +146,7 @@ class Spree::SubscriptionNotifier < Hubspot::TransactionEmail::Mailer
   private
 
   def get_email_id(subscription, email_name)
+=begin
     from_store=subscription.parent_order.store
     email_id = if from_store.url.include? ".com"
                  SpreeHubspot::Config.send('com_' + email_name)
@@ -155,6 +159,8 @@ class Spree::SubscriptionNotifier < Hubspot::TransactionEmail::Mailer
                elsif from_store.url.include? ".eu"
                  SpreeHubspot::Config.send('eu_' + email_name)
                end
+=end
+    get_email_id = SpreeHubspot::Config.send(subscription.parent_order.store.code + '_' + email_name)
   end
 
   def notify_subscriber(subscription, message_name, contact_properties, custom_properties)
