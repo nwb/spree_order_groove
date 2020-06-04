@@ -172,10 +172,12 @@ adjustShipmentItems = function(shipment_number, variant_id, quantity, auto_deliv
     }else if(previous_quantity>quantity){
       url += "/remove"
       new_quantity = (previous_quantity - quantity);
+    }else{
+        url += "/add"
+        new_quantity =0;
     }
     url += '.json';
 
-    if(new_quantity!=0){
       $.ajax({
         type: "PUT",
         url: Spree.url(url),
@@ -193,7 +195,6 @@ adjustShipmentItems = function(shipment_number, variant_id, quantity, auto_deliv
       }).fail(function(msg) {
         alert(msg.responseJSON.message)
       });
-    }
 }
 
 toggleMethodEdit = function(){
